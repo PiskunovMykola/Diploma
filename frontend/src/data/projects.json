@@ -1,0 +1,49 @@
+[
+    {
+      "Id":1,
+      "Sell":2,
+      "Name":"GrowthApp",
+      "Type":"Business",
+      "Price":12000,
+      "Image":"proj-1"
+    },
+    {
+      "Id":2,
+      "Sell":2,
+      "Name":"PW Antivirus",
+      "Type":"Security",
+      "Price":14000,
+      "Image":"proj-2"
+    },
+    {
+      "Id":3,
+      "Sell":1,
+      "Name":"FacebookNews",
+      "Type":"Social media",
+      "Price":20500,
+      "Image":"proj-3"
+    },
+    {
+      "Id":4,
+      "Sell":1,
+      "Name":"Amazonity",
+      "Type":"Online shop",
+      "Price":18000,
+      "Image":"proj-4"
+    },
+    {
+      "Id":5,
+      "Sell":1,
+      "Name":"Footballife",
+      "Type":"Game",
+      "Price":19000,
+      "Image":"proj-5"
+    },
+    {
+      "Id":6,
+      "Sell":1,
+      "Name":"IData",
+      "Type":"Data management",
+      "Price":11000
+    }
+]
