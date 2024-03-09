@@ -1,5 +1,32 @@
-<p>
-  <br><br><br>
-  add-project works!
-  <button (click)="onBack()" class="btn btn-primary">Back</button>
-</p>
+<div class="card">
+  <div class="card-header">
+    Add new Project
+  </div>
+  <div class="card-body">
+    <form (ngSubmit)='onSubmit()' #Form="ngForm">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" #projName="ngModel" 
+        ngModel name="Name" required minlength="4">
+        <span *ngIf="!projName.valid && projName.touched" class="error-message">
+          <span *ngIf="projName.errors?.['required']">Please enter name</span>
+          <span *ngIf="projName.errors?.['minlength']">Name must be at least 4 characters long</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="type">Type</label>
+        <input type="text" class="form-control" ngModel name="Type">
+      </div>
+
+      <div class="form-group">
+        <label for="price">Price</label>
+        <input type="text" class="form-control" ngModel name="Price">
+      </div><br>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary mx-2">Save</button>
+        <button type="reset" class="btn btn-primary">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
