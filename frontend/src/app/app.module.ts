@@ -3,6 +3,7 @@ import { BrowserModule, provideClientHydration } from '@angular/platform-browser
 import { HttpClientModule } from '@angular/common/http';
 import {Routes, RouterModule} from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -17,6 +18,8 @@ import { RegisterComponent } from './user/register/register/register.component';
 import { UserService } from './services/user.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { AuthService } from './services/auth.service';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 const appRoutes: Routes = [
   {path: '', component: ProjectListComponent},
@@ -47,12 +50,15 @@ const appRoutes: Routes = [
     ReactiveFormsModule,
     RouterModule.forRoot(appRoutes),
     BrowserAnimationsModule,
-    ToastrModule.forRoot()
+    ToastrModule.forRoot(),
+    NgSelectModule,
+    BsDropdownModule.forRoot()
   ],
   providers: [
     provideClientHydration(),
     ProjectingService,
-    UserService
+    UserService,
+    AuthService
   ],
   bootstrap: [AppComponent]
 })

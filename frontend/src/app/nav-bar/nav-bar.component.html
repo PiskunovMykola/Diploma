@@ -18,14 +18,48 @@
         </ul>
       <div>
         <ul class="nav navbar-nav">
-          <li class="nav-item">
+          <li *ngIf="!loggedin()" class="nav-item">
             <a class="nav-link" routerLink="user/register" routerLinkActive="active">Sign up</a>
           </li>
-          <li class="nav-item">
+          <li *ngIf="!loggedin()" class="nav-item">
             <a class="nav-link"
             routerLink="user/login"
             routerLinkActive="active">Log in</a>
           </li>
+
+          <!--<li *ngIf="loggedin()" class="nav-item">
+            <a class="nav-link" (click)="onLogout()"
+            >Log out</a>
+          </li> -->
+          <li *ngIf="loggedin()" class="nav-item dropdown" dropdown>
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" dropdownToggle>
+              Welcome {{loggedinUser}}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown" *dropdownMenu>
+              <a class="dropdown-item" href="#"> <i class="fa-solid fa-table-columns icon-margin"></i>Dashboard</a>
+              <a class="dropdown-item" href="#"><i class="fa-solid fa-user icon-margin"></i>My Profile</a>
+              <a class="dropdown-item" href="#"><i class="fa-solid fa-key icon-margin"></i>Edit Password</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" (click)="onLogout()"><i class="fa-solid fa-right-from-bracket icon-margin"></i>Log out</a>
+            </div>
+          </li>
+          
+          <!--<div *ngIf="loggedin()" class="dropdown mr-5" dropdown>
+            <a href="#" class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+              dropdownToggle (click)="false">
+                Welcome {{loggedinUser}}
+            </a>
+            <div class="dropdown-menu" *dropdownMenu>
+                <a href="#"class="dropdown-item">
+                  <i class="fa-solid fa-table-columns"></i> View Dashboard</a>
+                <a href="#" class="dropdown-item">
+                  <i class="fa-solid fa-user"></i> My Profile</a>
+                <a href="#" class="dropdown-item">
+                  <i class="fa-solid fa-key"></i> Change Password</a>
+                <a (click)='onLogout()' class="dropdown-item">
+                  <i class="fa-solid fa-right-from-bracket"></i> Log out</a>
+            </div>
+          </div>-->
         </ul>
       </div>
       </div>
