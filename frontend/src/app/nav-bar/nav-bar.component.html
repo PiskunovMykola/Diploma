@@ -13,7 +13,7 @@
             <a class="nav-link" [routerLinkActiveOptions]="{exact:true}" routerLinkActive="active"  routerLink="/sell-project">Sell</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link"routerLinkActive="active" routerLink="/add-project">List of Projects</a>
+            <a class="nav-link"routerLinkActive="active" routerLink="/add-project">Start a project</a>
           </li>
         </ul>
       <div>
@@ -27,10 +27,6 @@
             routerLinkActive="active">Log in</a>
           </li>
 
-          <!--<li *ngIf="loggedin()" class="nav-item">
-            <a class="nav-link" (click)="onLogout()"
-            >Log out</a>
-          </li> -->
           <li *ngIf="loggedin()" class="nav-item dropdown" dropdown>
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" dropdownToggle>
               Welcome {{loggedinUser}}
@@ -44,22 +40,6 @@
             </div>
           </li>
           
-          <!--<div *ngIf="loggedin()" class="dropdown mr-5" dropdown>
-            <a href="#" class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-              dropdownToggle (click)="false">
-                Welcome {{loggedinUser}}
-            </a>
-            <div class="dropdown-menu" *dropdownMenu>
-                <a href="#"class="dropdown-item">
-                  <i class="fa-solid fa-table-columns"></i> View Dashboard</a>
-                <a href="#" class="dropdown-item">
-                  <i class="fa-solid fa-user"></i> My Profile</a>
-                <a href="#" class="dropdown-item">
-                  <i class="fa-solid fa-key"></i> Change Password</a>
-                <a (click)='onLogout()' class="dropdown-item">
-                  <i class="fa-solid fa-right-from-bracket"></i> Log out</a>
-            </div>
-          </div>-->
         </ul>
       </div>
       </div>

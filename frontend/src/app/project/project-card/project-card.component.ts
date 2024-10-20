@@ -8,7 +8,6 @@ import { IProject } from '../IProject.interface';
 })
 
 export class ProjectCardComponent {
-  @Input()
-  project!: IProject;
+  @Input() project!: IProject;
 
 }
