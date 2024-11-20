@@ -2,7 +2,7 @@
     <div class="card-img-wrapper">
         <img *ngIf="project.Image" class="card-img-top" src="assets/images/{{project.Image}}.jpg">
         <img *ngIf="!project.Image" class="card-img-top" src="assets/images/project-default1.png">
-        <ul class="list-inline text-center member-icons animate">
+        <ul *ngIf="!hideIcons" class="list-inline text-center member-icons animate">
             <li class="list-inline-item">
                 <button class="btn btn-primary" routerLink="/project-detail/{{project.Id}}"><i class="fa-solid fa-pen-to-square"></i></button>
             </li>
@@ -12,9 +12,17 @@
         </ul>
     </div>
     <div class="card-body p-2">
-        <h1>{{project.Name}}</h1>
-        <h2>{{project.Type}}</h2>
-        <h3>{{project.Price}}</h3>
+         <p>{{project.Name}}</p>
+        <span *ngIf="project.Name"> </span>Country:
+        {{project.Location}}
+    
+        <h6  class="mt-2">{{project.Type}}
+        <span *ngIf="project.Type"></span></h6>
+    
+        <hr class="mt-0 mb-2">
+    
+        <h6 class="mb-0">Price: <span class="font-highlight">{{project.Price}} USD</span> <br>
+            Technologies:  <span class="font-highlight">{{project.Technologies}} </span> </h6>
     </div>
 </div>
 

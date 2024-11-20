@@ -5,6 +5,8 @@
       "Name":"GrowthApp",
       "Type":"Software",
       "Price":12000,
+      "Location": "Ukraine",
+      "Technologies": "Python",
       "Image":"proj-1"
     },
     {
@@ -13,6 +15,8 @@
       "Name":"PW Antivirus",
       "Type":"Cybersecurity",
       "Price":14000,
+      "Location": "Poland",
+      "Technologies": "Python",
       "Image":"proj-2"
     },
     {
@@ -21,6 +25,8 @@
       "Name":"FacebookNews",
       "Type":"Web",
       "Price":20500,
+      "Location": "USA",
+      "Technologies": "C#",
       "Image":"proj-3"
     },
     {
@@ -29,6 +35,8 @@
       "Name":"Amma",
       "Type":"Mobile app",
       "Price":18000,
+      "Location": "Poland",
+      "Technologies": "Swift",
       "Image":"proj-4"
     },
     {
@@ -37,6 +45,8 @@
       "Name":"Footballife",
       "Type":"Game",
       "Price":19000,
+      "Location": "Ukraine",
+      "Technologies": "Java",
       "Image":"proj-5"
     },
     {
@@ -44,6 +54,8 @@
       "Sell":1,
       "Name":"IData",
       "Type":"Big Data",
+      "Location": "Germany",
+      "Technologies": "C++",
       "Price":11000
     }
 ]

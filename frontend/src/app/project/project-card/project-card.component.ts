@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IProject } from '../IProject.interface';
+import { IProjectBase } from '../../model/iprojectbase';
 
 @Component({
   selector: 'app-project-card',
@@ -8,6 +8,7 @@ import { IProject } from '../IProject.interface';
 })
 
 export class ProjectCardComponent {
-  @Input() project!: IProject;
+  @Input() project!: IProjectBase;
+  @Input() hideIcons!: boolean;
 
 }

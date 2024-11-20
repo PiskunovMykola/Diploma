@@ -1,123 +1,98 @@
-<div class="row">
-  <div class="col-8">
-<div class="card">
-  <div class="card-header">
-   <h3>Add new project</h3>
-  </div>
-  <div class="card-body">
-    <form (ngSubmit)='onSubmit()' #Form="ngForm">
-        <div>
-          <tabset #formTabs>
-            <tab heading="Basic info">
-              <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" class="form-control" #projName="ngModel" 
-                ngModel name="Name" required minlength="4">
-                <span *ngIf="!projName.valid && projName.touched" class="error-message">
-                  <span *ngIf="projName.errors?.['required']">Please enter name</span>
-                  <span *ngIf="projName.errors?.['minlength']">Name must be at least 4 characters long</span>
-                </span>
-              </div><br>
-              
-              <div class="form-group col-12">
-                <p>Project Type</p>
-                <div class="btn-group" btnRadioGroup>
-                    <ng-container *ngFor="let ptype of projectTypes.slice(0, projectTypes.length / 2); let i=index">
-                        <label class="btn btn-outline-primary mr-2">
-                            <input type="radio" [btnRadio]="ptype" tabindex="0" role="button" name="projectType">{{ptype}}
-                        </label>
+<div class="row mb-5">
+  <div class="col-8 shadow-lg p-0 bg-white">
+    <div class="card">
+      <div class="card-header">
+        <h3>Add new project</h3>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)='onSubmit()' [formGroup]="addProjectForm">
+          <div class="tab-panel">
+            <tabset class="member-tabset" #formTabs>              
+              <tab heading="Basic info" formGroupName="BasicInfo">
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input type="text" class="form-control" formControlName="Name">
+                  <span *ngIf="BasicInfo.get('Name')?.invalid && BasicInfo.get('Name')?.touched" class="error-message">
+                    <span *ngIf="BasicInfo.get('Name')?.errors?.['required']">Please enter name</span>
+                    <span *ngIf="BasicInfo.get('Name')?.errors?.['minlength']">Name must be at least 4 characters long</span>
+                  </span>
+                </div><br>
+
+                <div class="form-group col-12">
+                  <p>Project Type</p>
+                  <div class="btn-group">
+                    <ng-container *ngFor="let ptype of projectTypes">
+                      <label class="btn btn-outline-primary mr-2">
+                        <input type="radio" formControlName="Type" [value]="ptype" tabindex="0" role="button">{{ptype}}
+                      </label>
                     </ng-container>
+                  </div>
+                </div><br>
+
+                <div class="form-group">
+                  <label for="location">Country</label>
+                  <input type="text" class="form-control" formControlName="Location">
+                </div><br>
+                <div class="form-group">
+                  <button type="button" [disabled]="BasicInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(1)">Next</button>
                 </div>
-            </div>
-            <br>
-            <div class="form-group col-12">
-                <div class="btn-group" btnRadioGroup>
-                    <ng-container *ngFor="let ptype of projectTypes.slice(projectTypes.length / 2); let i=index">
-                        <label class="btn btn-outline-primary mr-2">
-                            <input type="radio" [btnRadio]="ptype" tabindex="0" role="button" name="projectType">{{ptype}}
-                        </label>
-                    </ng-container>
+              </tab>
+
+              <tab heading="Pricing and Technologies" formGroupName="PriceTechInfo">
+                <div class="form-group col-12">
+                  <label>Price (in USD)</label>
+                  <input type="number" class="form-control" formControlName="Price" min="0">
                 </div>
-            </div><br>
-            
-        
-              <div class="form-group">
-                <label for="price">Location</label>
-                <input type="text" class="form-control">
-              </div><br>
-              <div class="form-group">
-                <button type="button" class="btn btn-primary btn-block" 
-                (click)="selectTab(1)">Next</button>
-              </div>
-            </tab>
 
-            <tab heading="Pricing and Area">
-              <div class="form-group col-12">
-                <label>Price (in USD)</label>
-                <input type="text" class="form-control">
-              </div>
+                <div class="form-group col-12">
+                  <label>Technologies</label>
+                  <input type="text" class="form-control" formControlName="Technologies">
+                </div><br>
+                <button type="button" [disabled]="PriceTechInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(2)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(0)">Back</button>
+              </tab>
 
-              <div class="form-group col-12">
-                <label>Area</label>
-                <input type="text" class="form-control">
-              </div><br>
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(2)">Next</button>
+              <tab heading="Description">
+                <div class="form-group col-12">
+                  <label>Description</label>
+                  <textarea type="text" class="form-control" rows="6"></textarea>
+                </div><br>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(1)">Back</button>
+              </tab>
 
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(0)">Back</button>
-            </tab>
-
-            <tab heading="Description">
-              <div class="form-group col-12">
-                <label>Description</label>
-                <textarea type="text" class="form-control" rows="6"></textarea>
-              </div><br>
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(3)">Next</button>
-
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(1)">Back</button>
-            </tab>
-
-            <tab heading="Photos and Video(optional)">
-              <div class="form-group col-12">
-                <div class="photo-control">
+              <tab heading="Photos and Video(optional)">
+                <div class="form-group col-12">
+                  <div class="photo-control">
                     <button class="mt-5" type="button">Upload</button> <br>
                     This is under construction
+                  </div>
                 </div>
-              </div>
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(4)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2)">Back</button>
+              </tab>
 
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(2)">Back</button>
-            </tab>
-
-            <tab heading="Contact">
-              <div class="form-group col-12">
-                <label>Contact</label>
-                <input type="text" class="form-control">
-              </div><br>
-              <button type="button" class="btn btn-primary btn-block" 
-              (click)="selectTab(3)">Back</button>
-
-              <button type="reset" class="btn btn-primary btn-block">Cancel</button>
-              <button type="submit" class="btn btn-primary btn-block">Save</button>
-            </tab>
-          </tabset>
-        </div>
-      
-    </form>
+              <tab heading="Contact">
+                <div class="form-group col-12">
+                  <label>Contact</label>
+                  <input type="text" class="form-control">
+                </div><br>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3)">Back</button>
+                <button type="reset" class="btn btn-primary btn-block">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-block">Save</button>
+              </tab>
+            </tabset>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-</div>
-</div>
-<div class="col-4">
-  <div class="card-header">
-  <h3>Your Project Preview</h3>
-<div>
-  <app-project-card></app-project-card>
-</div>
-</div>
-</div>
+  <div class="col-4">
+    <div class="card-header">
+      <h3>Your Project Preview</h3>
+    </div>
+    <div class="shadow-lg p-3 bg-white">
+      <app-project-card [project]="projectView" [hideIcons]="true"></app-project-card>
+    </div>
+  </div>
 </div>
