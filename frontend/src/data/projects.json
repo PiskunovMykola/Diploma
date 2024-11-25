@@ -7,7 +7,8 @@
       "Price":12000,
       "Location": "Ukraine",
       "Technologies": "Python",
-      "Image":"proj-1"
+      "Image":"proj-1",
+      "Description":"la la la"
     },
     {
       "Id":2,
@@ -17,7 +18,8 @@
       "Price":14000,
       "Location": "Poland",
       "Technologies": "Python",
-      "Image":"proj-2"
+      "Image":"proj-2",
+      "Description":"la la la"
     },
     {
       "Id":3,
@@ -27,7 +29,8 @@
       "Price":20500,
       "Location": "USA",
       "Technologies": "C#",
-      "Image":"proj-3"
+      "Image":"proj-3",
+      "Description":"la la la"
     },
     {
       "Id":4,
@@ -37,7 +40,8 @@
       "Price":18000,
       "Location": "Poland",
       "Technologies": "Swift",
-      "Image":"proj-4"
+      "Image":"proj-4",
+      "Description":"la la la"
     },
     {
       "Id":5,
@@ -47,7 +51,8 @@
       "Price":19000,
       "Location": "Ukraine",
       "Technologies": "Java",
-      "Image":"proj-5"
+      "Image":"proj-5",
+      "Description":"la la la"
     },
     {
       "Id":6,
@@ -56,6 +61,7 @@
       "Type":"Big Data",
       "Location": "Germany",
       "Technologies": "C++",
-      "Price":11000
+      "Price":11000,
+      "Description":"la la la"
     }
 ]

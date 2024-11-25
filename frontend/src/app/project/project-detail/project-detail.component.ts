@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
+import { ProjectingService } from '../../services/projecting.service';
+import { Project } from '../../model/project';
 @Component({
   selector: 'app-project-detail',
   templateUrl: './project-detail.component.html',
@@ -8,7 +9,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class ProjectDetailComponent implements OnInit {
 public projectId!: number;
-  constructor(private route: ActivatedRoute, private router: Router ) { }
+project = new Project();
+  constructor(private route: ActivatedRoute, 
+              private router: Router,
+              private projectingService: ProjectingService) { }
 
   ngOnInit() {
     this.projectId = +this.route.snapshot.params['id'];
@@ -16,13 +20,12 @@ public projectId!: number;
     this.route.params.subscribe(
       (params) => {
         this.projectId = +params['id'];
+        this.projectingService.getProject(this.projectId).subscribe(
+          (data: Project) => {
+            this.project = data
+          }        
+        )
       }
     )
   }
-
-  onSelectNext(){
-    this.projectId +=1;
-    this.router.navigate(['project-detail', this.projectId]);
-  }
-
 }

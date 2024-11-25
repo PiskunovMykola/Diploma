@@ -7,4 +7,5 @@ export interface IProjectBase{
     Location: string;
     Technologies: string;
     Image?: string;
+    Description: string;
 }

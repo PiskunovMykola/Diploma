@@ -27,7 +27,8 @@ export class AddProjectComponent implements OnInit {
     Price: 0,
     Location: '',
     Technologies: '',
-    Image: ''
+    Image: '',
+    Description: ''
   };
 
   
@@ -118,23 +119,10 @@ export class AddProjectComponent implements OnInit {
 
     const storedProjects = localStorage.getItem('newProject');
     let projectsArray = storedProjects ? JSON.parse(storedProjects) : [];
-    projectsArray = Array.isArray(projectsArray) ? projectsArray : []; // Проверка на массив
+    projectsArray = Array.isArray(projectsArray) ? projectsArray : []; 
     projectsArray.push(this.project);
 
     localStorage.setItem('newProject', JSON.stringify(projectsArray));
-    //console.log('Submitting project:', this.project); 
-    //this.projectingService.addProject(this.project);
-  
-    /*const newProject = {
-      Sell: this.Sell.value,
-      ...this.BasicInfo.value,
-      ...this.PriceTechInfo.value,
-      ...this.OtherInfo.value
-    };
-  
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('newProject', JSON.stringify(newProject));
-    }*/
   
     if (this.Sell.value === '2') {
       this.router.navigate(['/sell-project']);

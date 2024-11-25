@@ -52,10 +52,10 @@
                 <button type="button" class="btn btn-primary btn-block" (click)="selectTab(0, PriceTechInfo.valid)">Back</button>
               </tab>
 
-              <tab heading="Description">
+              <tab heading="Description" formGroupName="OtherInfo">
                 <div class="form-group col-12">
                   <label>Description</label>
-                  <textarea type="text" class="form-control" rows="6"></textarea>
+                  <textarea id="description" formControlName="Description" class="form-control"></textarea>
                 </div><br>
                 <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, OtherInfo.valid)">Next</button>
                 <button type="button" class="btn btn-primary btn-block" (click)="selectTab(1, OtherInfo.valid)">Back</button>

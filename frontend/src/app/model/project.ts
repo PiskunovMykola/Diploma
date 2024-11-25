@@ -9,5 +9,5 @@ export class Project implements IProjectBase{
     Location!: string;
     Technologies!: string;
     Image?: string;
-    Description?: string;
+    Description!: string;
 }

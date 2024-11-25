@@ -12,8 +12,14 @@ import { Project } from '../model/project';
 export class ProjectingService {
 
   constructor(private http: HttpClient) { }
-
-  getAllProjects(Sell: number): Observable<IProjectBase[]> {
+  getProject(id: number){
+    return this.getAllProjects().pipe(
+      map(projectsArray =>{
+        return projectsArray.find(p=>p.Id === id) as Project;
+      })
+    );
+  }
+  getAllProjects(Sell?: number): Observable<IProjectBase[]> {
     return this.http.get<{ [key: string]: IProjectBase }>('data/projects.json').pipe(
       map(data => {
         const projectsArray: Array<IProjectBase> = [];
@@ -23,16 +29,25 @@ export class ProjectingService {
 
         if (localProjects) {
           for (const id in localProjects) {
+            if(Sell){
             if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
               projectsArray.push(localProjects[id]);
             }
           }
+          else{
+            projectsArray.push(localProjects[id]);
+          }
+        }
         }
 
         for (const id in data) {
+          if(Sell){
           if (Object.prototype.hasOwnProperty.call(data, id) && data[id].Sell === Sell) {
             projectsArray.push(data[id]);
           }
+        }else{
+          projectsArray.push(data[id]);
+        }
         }
 
         return projectsArray;
