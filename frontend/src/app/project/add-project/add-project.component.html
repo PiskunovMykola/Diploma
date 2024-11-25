@@ -34,7 +34,7 @@
                   <input type="text" class="form-control" formControlName="Location">
                 </div><br>
                 <div class="form-group">
-                  <button type="button" [disabled]="BasicInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(1)">Next</button>
+                  <button type="button" [disabled]="BasicInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(1, BasicInfo.valid)">Next</button>
                 </div>
               </tab>
 
@@ -48,8 +48,8 @@
                   <label>Technologies</label>
                   <input type="text" class="form-control" formControlName="Technologies">
                 </div><br>
-                <button type="button" [disabled]="PriceTechInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(2)">Next</button>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(0)">Back</button>
+                <button type="button" [disabled]="PriceTechInfo.invalid" class="btn btn-primary btn-block" (click)="selectTab(2, PriceTechInfo.valid)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(0, PriceTechInfo.valid)">Back</button>
               </tab>
 
               <tab heading="Description">
@@ -57,8 +57,8 @@
                   <label>Description</label>
                   <textarea type="text" class="form-control" rows="6"></textarea>
                 </div><br>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3)">Next</button>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(1)">Back</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, OtherInfo.valid)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(1, OtherInfo.valid)">Back</button>
               </tab>
 
               <tab heading="Photos and Video(optional)">
@@ -68,8 +68,8 @@
                     This is under construction
                   </div>
                 </div>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4)">Next</button>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2)">Back</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4, true)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
               </tab>
 
               <tab heading="Contact">
@@ -77,7 +77,7 @@
                   <label>Contact</label>
                   <input type="text" class="form-control">
                 </div><br>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3)">Back</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, true)">Back</button>
                 <button type="reset" class="btn btn-primary btn-block">Cancel</button>
                 <button type="submit" class="btn btn-primary btn-block">Save</button>
               </tab>

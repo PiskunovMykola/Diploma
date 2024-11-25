@@ -3,27 +3,69 @@ import { Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { IProjectBase } from '../model/iprojectbase';
+import { IProject } from '../model/iproject';
+import { Project } from '../model/project';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectingService {
 
-  constructor(private http:HttpClient) { }
+  constructor(private http: HttpClient) { }
 
-  getAllProjects(Sell: number): Observable<IProjectBase[]>{
-    return  this.http.get('data/projects.json').pipe(
-        map(data=> {
-          const projectsArray: Array<IProjectBase> = [];
-          const jsonData = JSON.stringify(data)
-          const tmp:Array<IProjectBase> = JSON.parse(jsonData);
-          for (const id in tmp){
-            if (tmp[id].Sell == Sell){
-              projectsArray.push(tmp[id]);
+  getAllProjects(Sell: number): Observable<IProjectBase[]> {
+    return this.http.get<{ [key: string]: IProjectBase }>('data/projects.json').pipe(
+      map(data => {
+        const projectsArray: Array<IProjectBase> = [];
+
+        const localProjectsString = localStorage.getItem('newProject');
+        const localProjects = localProjectsString ? JSON.parse(localProjectsString) : null;
+
+        if (localProjects) {
+          for (const id in localProjects) {
+            if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
+              projectsArray.push(localProjects[id]);
             }
           }
-          return projectsArray;
-        })
+        }
+
+        for (const id in data) {
+          if (Object.prototype.hasOwnProperty.call(data, id) && data[id].Sell === Sell) {
+            projectsArray.push(data[id]);
+          }
+        }
+
+        return projectsArray;
+      })
     );
+
+    return this.http.get<IProject[]>('data/projects.json');
   }
+
+
+  addProject(project: Project) {
+    let newProject = [project];
+  
+    const storedProjects = localStorage.getItem('newProject');
+    if (storedProjects) {
+      newProject = [project, ...JSON.parse(storedProjects)];
+    }
+  
+    localStorage.setItem('newProject', JSON.stringify(newProject));
+  }
+  
+  newProjID(): number {
+    const pid = localStorage.getItem('PID');
+    
+    if (pid !== null) {
+      const newPid = +pid + 1;
+      localStorage.setItem('PID', String(newPid));
+      return newPid;
+    } else {
+      localStorage.setItem('PID', '101');
+      return 101;
+    }
+  }
+  
+  
 }
