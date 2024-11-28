@@ -4,6 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import {Routes, RouterModule} from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { NgxGalleryModule } from '@kolkov/ngx-gallery';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -22,12 +23,13 @@ import { AuthService } from './services/auth.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
+import { ProjectDetailResolverService } from './project/project-detail/project-detail-resolver.service';
 
 const appRoutes: Routes = [
   {path: '', component: ProjectListComponent},
   {path: 'sell-project', component: ProjectListComponent},
   {path: 'add-project', component: AddProjectComponent},
-  {path: 'project-detail/:id', component: ProjectDetailComponent},
+  {path: 'project-detail/:id', component: ProjectDetailComponent, resolve: {prj: ProjectDetailResolverService}},
   {path: 'user/login', component: LoginComponent},
   {path: 'user/register', component: RegisterComponent},
   {path: '**', component: ProjectListComponent}
@@ -56,13 +58,15 @@ const appRoutes: Routes = [
     NgSelectModule,
     BsDropdownModule.forRoot(),
     TabsModule.forRoot(),
-    ButtonsModule.forRoot()
+    ButtonsModule.forRoot(),
+    NgxGalleryModule
   ],
   providers: [
     provideClientHydration(),
     ProjectingService,
     UserService,
-    AuthService
+    AuthService,
+    ProjectDetailResolverService
   ],
   bootstrap: [AppComponent]
 })

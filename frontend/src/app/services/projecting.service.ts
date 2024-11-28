@@ -15,14 +15,15 @@ export class ProjectingService {
   getProject(id: number){
     return this.getAllProjects().pipe(
       map(projectsArray =>{
+        //throw new Error('Some error');
         return projectsArray.find(p=>p.Id === id) as Project;
       })
     );
   }
-  getAllProjects(Sell?: number): Observable<IProjectBase[]> {
-    return this.http.get<{ [key: string]: IProjectBase }>('data/projects.json').pipe(
+  getAllProjects(Sell?: number): Observable<Project[]> {
+    return this.http.get<{ [key: string]: Project }>('data/projects.json').pipe(
       map(data => {
-        const projectsArray: Array<IProjectBase> = [];
+        const projectsArray: Array<Project> = [];
 
         const localProjectsString = localStorage.getItem('newProject');
         const localProjects = localProjectsString ? JSON.parse(localProjectsString) : null;
@@ -54,7 +55,7 @@ export class ProjectingService {
       })
     );
 
-    return this.http.get<IProject[]>('data/projects.json');
+    return this.http.get<Project[]>('data/projects.json');
   }
 
 
