@@ -1,7 +1,28 @@
-<div class="row custom-row">
-    <div *ngFor="let project of projects" class="col-sm-4 p-3">
-        <div class="shadow-lg p-3 mb-4">
-        <app-project-card [project]="project"></app-project-card>
+<label>Filter By: &nbsp; </label>
+<select [(ngModel)]="FilterField">
+  <option value="Location">Country</option>
+  <option value="Technologies">Technologies</option>
+  <option value="Type">Type</option>
+</select>
+
+<input [(ngModel)]="FilterValue" placeholder="Enter filter value" />
+<button type="button" (click)="onFilter()">Search</button>
+<button type="button" (click)="onFilterClear()">Clear</button> &nbsp;
+
+<label>Sort by &nbsp;</label>
+<select [(ngModel)]="SortbyParam">
+  <option value="Name">Name</option>
+  <option value="Price">Price</option>
+</select>
+<button type="button" (click)="onSortDirection()">
+  <i *ngIf="SortDirection === 'asc'" class="fas fa-sort-alpha-down"></i>
+  <i *ngIf="SortDirection === 'desc'" class="fas fa-sort-alpha-up"></i>
+</button>
+
+<div class="row">
+  <div *ngFor="let project of projects | filter: FilterValue: FilterField | sort:[SortbyParam, SortDirection]" class="col-sm-4">
+    <div class="shadow-lg p-3 mb-4">
+      <app-project-card [project]="project"></app-project-card>
     </div>
-    </div>
+  </div>
 </div>

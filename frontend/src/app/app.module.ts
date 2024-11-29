@@ -24,6 +24,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { ProjectDetailResolverService } from './project/project-detail/project-detail-resolver.service';
+import { FilterPipe } from './Pipes/filter.pipe';
+import { SortPipe } from './Pipes/sort.pipe';
 
 const appRoutes: Routes = [
   {path: '', component: ProjectListComponent},
@@ -44,7 +46,9 @@ const appRoutes: Routes = [
     AddProjectComponent,
     ProjectDetailComponent,
     RegisterComponent,
-    LoginComponent
+    LoginComponent,
+    FilterPipe,
+    SortPipe
   ],
   imports: [
     BrowserModule,
