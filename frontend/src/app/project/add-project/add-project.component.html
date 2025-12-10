@@ -62,15 +62,83 @@
               </tab>
 
               <tab heading="Photos and Video(optional)">
-                <div class="form-group col-12">
-                  <div class="photo-control">
-                    <button class="mt-5" type="button">Upload</button> <br>
-                    This is under construction
-                  </div>
+  <div class="form-group col-12">
+    <div class="photo-control">
+      
+      <label><b>Photos</b></label><br>
+      <input type="file" (change)="onFileSelected($event)" #fileInput style="display: none;" accept="image/*">
+      <button class="btn btn-secondary mb-3" type="button" (click)="fileInput.click()">
+        {{ uploadedImages.length > 0 ? 'Add another photo' : 'Upload Photo' }}
+      </button>
+
+      <p *ngIf="isImageUploading" class="text-info">Uploading photo...</p>
+
+      <div class="row mb-4">
+        <div class="col-sm-3 mb-2" *ngFor="let photoUrl of uploadedImages; let i = index">
+           <div class="card text-center h-100">
+             <span *ngIf="i === 0" class="badge badge-success position-absolute" style="top:5px; left:5px; z-index: 10;">Main</span>
+             
+             <div style="height: 100px; overflow: hidden;">
+                <img [src]="photoUrl" class="card-img-top" style="height: 100%; object-fit: cover;">
+             </div>
+
+             <div class="card-footer p-1">
+               <div class="btn-group btn-group-sm">
+                 <button type="button" class="btn btn-outline-secondary" 
+                         (click)="moveImage(i, -1)" 
+                         [disabled]="i === 0">
+                   ←
+                 </button>
+                 
+                 <button type="button" class="btn btn-outline-danger" (click)="removeImage(i)">
+                   🗑️
+                 </button>
+
+                 <button type="button" class="btn btn-outline-secondary" 
+                         (click)="moveImage(i, 1)" 
+                         [disabled]="i === uploadedImages.length - 1">
+                   →
+                 </button>
+               </div>
+             </div>
+
+           </div>
+        </div>
+      </div>
+
+      <hr>
+      <label><b>Videos</b></label><br>
+      <input type="file" (change)="onVideoSelected($event)" #videoInput style="display: none;" accept="video/*">
+      
+      <button class="btn btn-dark mb-3" type="button" (click)="videoInput.click()">
+        Upload Video
+      </button>
+
+      <p *ngIf="isVideoUploading" class="text-info">Uploading video...</p>
+      
+      <div class="row">
+        <div class="col-sm-4 mb-3" *ngFor="let videoUrl of uploadedVideoUrls; let i = index">
+          <div class="card bg-light">
+             <div class="card-body p-1">
+                <video [src]="videoUrl" controls style="width: 100%; height: 150px; background: #000;"></video>
+             </div>
+             <div class="card-footer p-1 text-center">
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-secondary" (click)="moveVideo(i, -1)" [disabled]="i === 0">←</button>
+                  <button type="button" class="btn btn-outline-danger" (click)="removeVideo(i)">🗑️</button>
+                  <button type="button" class="btn btn-outline-secondary" (click)="moveVideo(i, 1)" [disabled]="i === uploadedVideoUrls.length - 1">→</button>
                 </div>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4, true)">Next</button>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
-              </tab>
+             </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <br>
+  <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4, true)">Next</button>
+  <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
+</tab>
 
               <tab heading="Contact">
                 <div class="form-group col-12">

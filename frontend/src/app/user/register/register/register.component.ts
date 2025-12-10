@@ -42,8 +42,13 @@ export class RegisterComponent implements OnInit {
     this.userSubmitted = true;
 
     if(this.registrationForm.valid){
-      this.userService.addUser(this.userData());
-      this.registrationForm.reset();
+      //this.userService.addUser(this.userData());
+      //this.registrationForm.reset();
+      const user = this.userData();
+      this.userService.addUser(user);
+
+      // Сохранение данных в localStorage для последующего использования
+      localStorage.setItem('user', JSON.stringify(user));
       this.userSubmitted = false;
       this.toastr.success('Congratulations, you have successfully  registered!');
     } else{

@@ -11,7 +11,7 @@ export class FilterPipe implements PipeTransform {
     }
 
     for (const item of value) {
-      if (item[filterField]?.toLowerCase().startsWith(filterString.toLowerCase())) {
+      if (item[filterField]?.toLowerCase().includes(filterString.toLowerCase())) {
         resultArray.push(item);
       }
     }

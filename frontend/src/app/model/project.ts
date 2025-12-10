@@ -9,5 +9,7 @@ export class Project implements IProjectBase{
     Location!: string;
     Technologies!: string;
     Image?: string;
+    Photos?: string[];
+    Videos?: string[];
     Description!: string;
 }

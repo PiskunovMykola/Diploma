@@ -32,9 +32,8 @@
               Welcome {{loggedinUser}}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown" *dropdownMenu>
-              <a class="dropdown-item" href="#"> <i class="fa-solid fa-table-columns icon-margin"></i>Dashboard</a>
-              <a class="dropdown-item" href="#"><i class="fa-solid fa-user icon-margin"></i>My Profile</a>
-              <a class="dropdown-item" href="#"><i class="fa-solid fa-key icon-margin"></i>Edit Password</a>
+              <a class="dropdown-item" routerLink="/user/profile"><i class="fa-solid fa-user icon-margin"></i>My Profile</a>
+              <a class="dropdown-item" routerLink="/user/password" ><i class="fa-solid fa-key icon-margin"></i>Edit Password</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" (click)="onLogout()"><i class="fa-solid fa-right-from-bracket icon-margin"></i>Log out</a>
             </div>

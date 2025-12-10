@@ -26,6 +26,12 @@ import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { ProjectDetailResolverService } from './project/project-detail/project-detail-resolver.service';
 import { FilterPipe } from './Pipes/filter.pipe';
 import { SortPipe } from './Pipes/sort.pipe';
+import { UserProfileComponent } from './user-profile/user-profile.component';
+import { EditPasswordComponent } from './user/edit-password/edit-password.component';
+
+import { AngularFireStorageModule } from '@angular/fire/compat/storage';
+import { AngularFireModule } from '@angular/fire/compat';
+import { environment } from '../environments/environment';
 
 const appRoutes: Routes = [
   {path: '', component: ProjectListComponent},
@@ -34,7 +40,10 @@ const appRoutes: Routes = [
   {path: 'project-detail/:id', component: ProjectDetailComponent, resolve: {prj: ProjectDetailResolverService}},
   {path: 'user/login', component: LoginComponent},
   {path: 'user/register', component: RegisterComponent},
+  { path: 'user/profile', component: UserProfileComponent },
+  { path: 'user/password', component: EditPasswordComponent },
   {path: '**', component: ProjectListComponent}
+  
 ]
 
 @NgModule({
@@ -48,7 +57,9 @@ const appRoutes: Routes = [
     RegisterComponent,
     LoginComponent,
     FilterPipe,
-    SortPipe
+    SortPipe,
+    UserProfileComponent,
+    EditPasswordComponent
   ],
   imports: [
     BrowserModule,
@@ -63,7 +74,9 @@ const appRoutes: Routes = [
     BsDropdownModule.forRoot(),
     TabsModule.forRoot(),
     ButtonsModule.forRoot(),
-    NgxGalleryModule
+    NgxGalleryModule,
+    AngularFireModule.initializeApp(environment.firebase), 
+    AngularFireStorageModule
   ],
   providers: [
     provideClientHydration(),

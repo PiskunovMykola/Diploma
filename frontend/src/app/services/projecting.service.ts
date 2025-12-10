@@ -1,25 +1,26 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs/operators';
+import { map, finalize } from 'rxjs/operators'; // Добавил finalize
 import { Observable } from 'rxjs';
-import { IProjectBase } from '../model/iprojectbase';
-import { IProject } from '../model/iproject';
 import { Project } from '../model/project';
+import { AngularFireStorage } from '@angular/fire/compat/storage'; // Добавил импорт Firebase Storage
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectingService {
+  
+  // Добавил private storage: AngularFireStorage в конструктор
+  constructor(private http: HttpClient, private storage: AngularFireStorage) { }
 
-  constructor(private http: HttpClient) { }
   getProject(id: number){
     return this.getAllProjects().pipe(
       map(projectsArray =>{
-        //throw new Error('Some error');
-        return projectsArray.find(p=>p.Id === id) as Project;
+        return projectsArray.find(p => p.Id === id) as Project;
       })
     );
   }
+
   getAllProjects(Sell?: number): Observable<Project[]> {
     return this.http.get<{ [key: string]: Project }>('data/projects.json').pipe(
       map(data => {
@@ -31,33 +32,30 @@ export class ProjectingService {
         if (localProjects) {
           for (const id in localProjects) {
             if(Sell){
-            if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
+              if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
+                projectsArray.push(localProjects[id]);
+              }
+            }
+            else{
               projectsArray.push(localProjects[id]);
             }
           }
-          else{
-            projectsArray.push(localProjects[id]);
-          }
-        }
         }
 
         for (const id in data) {
           if(Sell){
-          if (Object.prototype.hasOwnProperty.call(data, id) && data[id].Sell === Sell) {
+            if (Object.prototype.hasOwnProperty.call(data, id) && data[id].Sell === Sell) {
+              projectsArray.push(data[id]);
+            }
+          } else {
             projectsArray.push(data[id]);
           }
-        }else{
-          projectsArray.push(data[id]);
-        }
         }
 
         return projectsArray;
       })
     );
-
-    return this.http.get<Project[]>('data/projects.json');
   }
-
 
   addProject(project: Project) {
     let newProject = [project];
@@ -82,6 +80,24 @@ export class ProjectingService {
       return 101;
     }
   }
-  
+
+  // === ЭТОТ МЕТОД НУЖЕН ДЛЯ ЗАГРУЗКИ КАРТИНКИ ===
+  uploadFile(file: File): Observable<string> {
+    const filePath = `project-images/${Date.now()}_${file.name}`; // Генерируем уникальное имя
+    const fileRef = this.storage.ref(filePath);
+    const task = this.storage.upload(filePath, file);
+
+    // Возвращаем поток, который вернет URL картинки после полной загрузки
+    return new Observable<string>(observer => {
+      task.snapshotChanges().pipe(
+        finalize(() => {
+          fileRef.getDownloadURL().subscribe(url => {
+            observer.next(url);
+            observer.complete();
+          });
+        })
+      ).subscribe();
+    });
+  }
   
 }

@@ -25,7 +25,7 @@ export class LoginComponent implements OnInit {
       this.toastr.success('Successful Login!');
       this.router.navigate(['/']);
     } else{
-      this.toastr.error('Invalid user name or password');
+      this.toastr.error('Invalid user email or password');
     }
   }
 

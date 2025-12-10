@@ -1,7 +1,8 @@
 <div class="card card-margin">
     <div class="card-img-wrapper">
-        <img *ngIf="project.Image" class="card-img-top" src="assets/images/{{project.Image}}.jpg">
+        <img *ngIf="project.Image" class="card-img-top" [src]="project.Image" alt="{{project.Name}}">
         <img *ngIf="!project.Image" class="card-img-top" src="assets/images/project-default1.png">
+
         <ul *ngIf="!hideIcons" class="list-inline text-center member-icons animate">
             <li class="list-inline-item">
                 <button class="btn btn-primary" routerLink="/project-detail/{{project.Id}}"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -25,5 +26,3 @@
             Technologies:  <span class="font-highlight">{{project.Technologies}} </span> </h6>
     </div>
 </div>
-
-
