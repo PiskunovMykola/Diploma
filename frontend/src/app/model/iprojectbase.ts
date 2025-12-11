@@ -10,4 +10,7 @@ export interface IProjectBase{
     Photos?: string[];
     Videos?: string[];
     Description: string;
+    ContactEmail?: string;
+    ContactPhone?: string;
+    ContactOther?: string;
 }

@@ -140,14 +140,38 @@
   <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
 </tab>
 
-              <tab heading="Contact">
+              <tab heading="Contact" formGroupName="ContactInfo">
                 <div class="form-group col-12">
-                  <label>Contact</label>
-                  <input type="text" class="form-control">
-                </div><br>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, true)">Back</button>
-                <button type="reset" class="btn btn-primary btn-block">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-block">Save</button>
+                  <h3>Developer Contacts</h3>
+                  <p class="text-muted">These details will be visible only to registered users.</p>
+                </div>
+
+                <div class="form-group col-12">
+                  <label for="ContactEmail">Contact Email *</label>
+                  <input type="email" class="form-control" formControlName="ContactEmail">
+                  <span *ngIf="ContactInfo.get('ContactEmail')?.invalid && nextClicked" class="error-message text-danger">
+                    Please enter a valid email address
+                  </span>
+                </div>
+
+                <div class="form-group col-12">
+                  <label for="ContactPhone">Contact Phone (Optional)</label>
+                  <input type="tel" class="form-control" formControlName="ContactPhone" placeholder="+1 234 567 890">
+                </div>
+
+                <div class="form-group col-12">
+                    <label for="ContactOther">Other / Social Media (Optional)</label>
+                    <input type="text" class="form-control" formControlName="ContactOther" placeholder="Telegram, LinkedIn, Website, etc.">
+                </div>
+
+                <br>
+               <div class="form-group col-12">
+    <div class="d-flex gap-2 mt-3">
+        <button type="button" class="btn btn-primary" (click)="selectTab(3, true)">Back</button>
+        <button type="reset" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-success">Save Project</button>
+    </div>
+</div>
               </tab>
             </tabset>
           </div>

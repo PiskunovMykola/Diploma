@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectingService } from '../../services/projecting.service';
 import { Project } from '../../model/project';
 import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from '@kolkov/ngx-gallery';
+import { AuthService } from '../../services/auth.service'; // <--- Импорт AuthService
 
 @Component({
   selector: 'app-project-detail',
@@ -14,28 +15,33 @@ export class ProjectDetailComponent implements OnInit {
   project = new Project();
   galleryOptions!: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[] = [];
+  
+  // Переменная для статуса авторизации
+  isUserLoggedIn: boolean = false;
 
-  constructor(private route: ActivatedRoute, 
-              private router: Router,
-              private projectingService: ProjectingService) { }
+  constructor(
+    private route: ActivatedRoute, 
+    private router: Router,
+    private projectingService: ProjectingService,
+    private authService: AuthService // <--- Внедрение сервиса
+  ) { }
 
   ngOnInit() {
     this.projectId = +this.route.snapshot.params['id'];
     
-    // Получаем данные о проекте (через Resolver)
+    // 1. Проверяем, залогинен ли пользователь
+    this.isUserLoggedIn = this.authService.loggedin();
+
     this.route.data.subscribe((data) => {
       const projectData = data as { prj: Project | null }; 
       if (projectData.prj) {
         this.project = projectData.prj;
-        
-        // ВАЖНО: Инициализируем картинки только когда проект загружен
         this.setGalleryImages();
       } else {
         this.router.navigate(['/']);
       }
     });
 
-    // Настройки галереи
     this.galleryOptions = [
       {
         width: '100%',
@@ -47,11 +53,9 @@ export class ProjectDetailComponent implements OnInit {
     ];
   }
 
-  // Логика заполнения галереи
   setGalleryImages() {
     this.galleryImages = [];
 
-    // ВАРИАНТ 1: Если у проекта есть массив загруженных фото (Multi-upload)
     if (this.project.Photos && this.project.Photos.length > 0) {
       this.project.Photos.forEach(photoUrl => {
         this.galleryImages.push({
@@ -61,7 +65,6 @@ export class ProjectDetailComponent implements OnInit {
         });
       });
     } 
-    // ВАРИАНТ 2: Если массива Photos нет, но есть одно главное Image
     else if (this.project.Image) {
       this.galleryImages.push({
         small: this.project.Image,
@@ -69,7 +72,6 @@ export class ProjectDetailComponent implements OnInit {
         big: this.project.Image
       });
     }
-    // ВАРИАНТ 3: Если совсем нет фото, показываем заглушку
     else {
       this.galleryImages = [
         {

@@ -19,11 +19,9 @@ export class AddProjectComponent implements OnInit {
   projectTypes: Array<string> = ['Web', 'Mobile', 'Game', 'AI', 'Cloud technologies', 
     'Big data', 'Internet of Things', 'Cybersecurity', 'Software', 'Blockchain'];
   
-  // === ФОТО: Переменные ===
+  // ФОТО и ВИДЕО переменные
   uploadedImages: string[] = []; 
   isImageUploading: boolean = false;
-
-  // === ВИДЕО: Переменные ===
   uploadedVideoUrls: string[] = [];
   isVideoUploading: boolean = false;
 
@@ -38,7 +36,10 @@ export class AddProjectComponent implements OnInit {
     Image: '',
     Description: '',
     Photos: [],
-    Videos: []
+    Videos: [],
+    ContactEmail: '',
+    ContactPhone: '',
+    ContactOther: ''
   };
 
   constructor(
@@ -49,10 +50,13 @@ export class AddProjectComponent implements OnInit {
   ngOnInit() {
     this.CreateAddProjectForm();
     this.addProjectForm.valueChanges.subscribe(value => {
-      // При обновлении формы обновляем текстовые поля превью
-      this.projectView = { ...this.projectView, ...value.BasicInfo, ...value.PriceTechInfo };
+      this.projectView = { 
+        ...this.projectView, 
+        ...value.BasicInfo, 
+        ...value.PriceTechInfo,
+        ...value.ContactInfo // Обновляем превью контактов (если нужно)
+      };
       
-      // Синхронизируем главное фото (всегда первое в массиве)
       if (this.uploadedImages.length > 0) {
         this.projectView.Image = this.uploadedImages[0];
       }
@@ -73,115 +77,58 @@ export class AddProjectComponent implements OnInit {
       }),
       OtherInfo: this.fb.group({
         Description: [null]
+      }),
+      ContactInfo: this.fb.group({
+        ContactEmail: [null, [Validators.required, Validators.email]],
+        ContactPhone: [null],
+        ContactOther: [null]
       })
     });
   }
-
-  // ==========================================
-  // === ЗАГРУЗКА ФАЙЛОВ ===
-  // ==========================================
-
-  onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    
-    if (file) {
-      this.isImageUploading = true;
-      
-      this.projectingService.uploadFile(file).subscribe({
-        next: (url) => {
-          this.isImageUploading = false;
-          
-          this.uploadedImages.push(url);
-
-          // Обновляем превью: первое фото всегда главное
-          if (this.uploadedImages.length > 0) {
-            this.projectView.Image = this.uploadedImages[0]; 
-          }
-          
-          event.target.value = ''; // Сброс инпута
-        },
-        error: (error) => {
-          console.error('Photo upload failed', error);
-          this.isImageUploading = false;
-          alert('Failed to upload photo.');
-        }
-      });
-    }
+  
+  onFileSelected(event: any) { /* код из прошлого ответа */ 
+      const file: File = event.target.files[0];
+      if (file) {
+        this.isImageUploading = true;
+        this.projectingService.uploadFile(file).subscribe({
+          next: (url) => {
+            this.isImageUploading = false;
+            this.uploadedImages.push(url);
+            if (this.uploadedImages.length === 1) this.projectView.Image = url; 
+            event.target.value = ''; 
+          },
+          error: (error) => { console.error(error); this.isImageUploading = false; }
+        });
+      }
   }
 
-  onVideoSelected(event: any) {
-    const file: File = event.target.files[0];
-    
-    if (file) {
-      this.isVideoUploading = true;
-      
-      this.projectingService.uploadFile(file).subscribe({
-        next: (url) => {
-          this.isVideoUploading = false;
-          this.uploadedVideoUrls.push(url);
-          event.target.value = ''; // Сброс инпута
-        },
-        error: (error) => {
-          console.error('Video upload failed', error);
-          this.isVideoUploading = false;
-          alert('Failed to upload video.');
-        }
-      });
-    }
+  onVideoSelected(event: any) { /* код из прошлого ответа */ 
+      const file: File = event.target.files[0];
+      if (file) {
+        this.isVideoUploading = true;
+        this.projectingService.uploadFile(file).subscribe({
+          next: (url) => {
+            this.isVideoUploading = false;
+            this.uploadedVideoUrls.push(url);
+            event.target.value = '';
+          },
+          error: (error) => { console.error(error); this.isVideoUploading = false; }
+        });
+      }
   }
 
-  // ==========================================
-  // === УПРАВЛЕНИЕ ГАЛЕРЕЕЙ (Удаление/Сортировка) ===
-  // ==========================================
+  removeImage(index: number) { this.uploadedImages.splice(index, 1); if (this.uploadedImages.length > 0) this.projectView.Image = this.uploadedImages[0]; else this.projectView.Image = ''; }
+  moveImage(index: number, step: number) { const newIndex = index + step; if (newIndex >= 0 && newIndex < this.uploadedImages.length) { const temp = this.uploadedImages[index]; this.uploadedImages[index] = this.uploadedImages[newIndex]; this.uploadedImages[newIndex] = temp; this.projectView.Image = this.uploadedImages[0]; } }
+  removeVideo(index: number) { this.uploadedVideoUrls.splice(index, 1); }
+  moveVideo(index: number, step: number) { const newIndex = index + step; if (newIndex >= 0 && newIndex < this.uploadedVideoUrls.length) { const temp = this.uploadedVideoUrls[index]; this.uploadedVideoUrls[index] = this.uploadedVideoUrls[newIndex]; this.uploadedVideoUrls[newIndex] = temp; } }
 
-  // 1. Удаление фото
-  removeImage(index: number) {
-    this.uploadedImages.splice(index, 1);
-    
-    // Обновляем главное фото после удаления
-    if (this.uploadedImages.length > 0) {
-      this.projectView.Image = this.uploadedImages[0];
-    } else {
-      this.projectView.Image = ''; // Если фоток больше нет
-    }
-  }
 
-  // 2. Перемещение фото (step: -1 = влево, 1 = вправо)
-  moveImage(index: number, step: number) {
-    const newIndex = index + step;
-
-    // Проверка границ массива
-    if (newIndex >= 0 && newIndex < this.uploadedImages.length) {
-      // Меняем местами через деструктуризацию или временную переменную
-      const temp = this.uploadedImages[index];
-      this.uploadedImages[index] = this.uploadedImages[newIndex];
-      this.uploadedImages[newIndex] = temp;
-
-      // Обновляем главное фото (оно всегда под индексом 0)
-      this.projectView.Image = this.uploadedImages[0];
-    }
-  }
-
-  // 3. Удаление видео
-  removeVideo(index: number) {
-    this.uploadedVideoUrls.splice(index, 1);
-  }
-
-  // 4. Перемещение видео
-  moveVideo(index: number, step: number) {
-    const newIndex = index + step;
-    if (newIndex >= 0 && newIndex < this.uploadedVideoUrls.length) {
-      const temp = this.uploadedVideoUrls[index];
-      this.uploadedVideoUrls[index] = this.uploadedVideoUrls[newIndex];
-      this.uploadedVideoUrls[newIndex] = temp;
-    }
-  }
-
-  // ==========================================
-
+  // Геттеры для форм
   get BasicInfo() { return this.addProjectForm.controls['BasicInfo'] as FormGroup; }
   get PriceTechInfo() { return this.addProjectForm.controls['PriceTechInfo'] as FormGroup; }
   get OtherInfo() { return this.addProjectForm.controls['OtherInfo'] as FormGroup; }
+  // НОВЫЙ ГЕТТЕР
+  get ContactInfo() { return this.addProjectForm.controls['ContactInfo'] as FormGroup; }
   
   get Sell() { return this.BasicInfo.controls['Sell']; }
   get Name() { return this.BasicInfo.controls['Name'] as FormControl; }
@@ -190,6 +137,11 @@ export class AddProjectComponent implements OnInit {
   get Price() { return this.PriceTechInfo.controls['Price'] as FormControl; }
   get Technologies() { return this.PriceTechInfo.controls['Technologies'] as FormControl; }
   get Description() { return this.OtherInfo.controls['Description'] as FormControl; }
+  
+  // Геттеры для полей контактов
+  get ContactEmail() { return this.ContactInfo.controls['ContactEmail'] as FormControl; }
+  get ContactPhone() { return this.ContactInfo.controls['ContactPhone'] as FormControl; }
+  get ContactOther() { return this.ContactInfo.controls['ContactOther'] as FormControl; }
 
   onBack() {
     this.router.navigate(['/']);
@@ -197,27 +149,24 @@ export class AddProjectComponent implements OnInit {
 
   onSubmit() {
     this.nextClicked = true;
-    if (this.BasicInfo.invalid) {
-      this.formTabs.tabs[0].active = true;
-      return;  
-    }
+    if (this.allTabsValid()) {
+      this.mapProject();
+      
+      const storedProjects = localStorage.getItem('newProject');
+      let projectsArray = storedProjects ? JSON.parse(storedProjects) : [];
+      projectsArray = Array.isArray(projectsArray) ? projectsArray : []; 
+      projectsArray.push(this.project);
+
+      localStorage.setItem('newProject', JSON.stringify(projectsArray));
     
-    this.mapProject(); // Собираем данные
-
-    const storedProjects = localStorage.getItem('newProject');
-    let projectsArray = storedProjects ? JSON.parse(storedProjects) : [];
-    projectsArray = Array.isArray(projectsArray) ? projectsArray : []; 
-    projectsArray.push(this.project);
-
-    localStorage.setItem('newProject', JSON.stringify(projectsArray));
-  
-    if (this.Sell.value === '2') {
-      this.router.navigate(['/sell-project']);
+      if (this.Sell.value === '2') {
+        this.router.navigate(['/sell-project']);
+      } else {
+        this.router.navigate(['/']);
+      }
     } else {
-      this.router.navigate(['/']);
+        alert('Please fill all required fields');
     }
-  
-    console.log('Form submitted:', this.project);
   }
 
   mapProject(): void{
@@ -230,13 +179,14 @@ export class AddProjectComponent implements OnInit {
     this.project.Technologies = this.Technologies.value;
     this.project.Description = this.Description.value;
     
-    // === СОХРАНЕНИЕ ===
-    // Главное фото - первое в списке (если есть)
     this.project.Image = this.uploadedImages.length > 0 ? this.uploadedImages[0] : '';
-    
-    // Сохраняем полные массивы
     this.project.Photos = this.uploadedImages;
     this.project.Videos = this.uploadedVideoUrls;
+
+    // === СОХРАНЕНИЕ КОНТАКТОВ ===
+    this.project.ContactEmail = this.ContactEmail.value;
+    this.project.ContactPhone = this.ContactPhone.value;
+    this.project.ContactOther = this.ContactOther.value;
   }
 
   allTabsValid(): boolean {
@@ -244,7 +194,6 @@ export class AddProjectComponent implements OnInit {
       this.formTabs.tabs[0].active = true;
       return false;
     }
-
     if (this.PriceTechInfo.invalid) {
       this.formTabs.tabs[1].active = true;
       return false;
@@ -253,7 +202,11 @@ export class AddProjectComponent implements OnInit {
       this.formTabs.tabs[2].active = true;
       return false;
     }
-
+    // Проверка контактов
+    if (this.ContactInfo.invalid) {
+        this.formTabs.tabs[4].active = true; // Индекс вкладки Contact
+        return false;
+    }
     return true;
   }
    

@@ -65,11 +65,31 @@
             </div>
           </div>
         </tab>
-        <tab heading="Contact">
+
+       <tab heading="Contact">
           <h1>Contact Detail</h1>
-          This should be restricted area and only registered user should be able to see seller contact details
+          
+          <div *ngIf="!isUserLoggedIn" class="alert alert-warning">
+            <p><i class="fa fa-lock"></i> This area is restricted. Only registered users can see seller contact details.</p>
+            <button class="btn btn-primary" routerLink="/user/login">Login</button>
+            <span class="ml-2">or</span>
+            <button class="btn btn-outline-primary ml-2" routerLink="/user/register">Register</button>
+          </div>
+
+          <div *ngIf="isUserLoggedIn">
+             <div class="card p-3">
+               
+               <p><strong>Email:</strong> {{ project.ContactEmail ? project.ContactEmail : 'Not provided' }}</p>
+               
+               <p *ngIf="project.ContactPhone"><strong>Phone:</strong> {{ project.ContactPhone }}</p>
+               <p *ngIf="!project.ContactPhone" class="text-muted">Phone: Not provided</p>
+
+               <p *ngIf="project.ContactOther"><strong>Other Info:</strong> {{ project.ContactOther }}</p>
+             </div>
+          </div>
+
         </tab>
-      </tabset>
+        </tabset>
     </div>
   </div>
 </div>
