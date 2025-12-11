@@ -13,4 +13,5 @@ export interface IProjectBase{
     ContactEmail?: string;
     ContactPhone?: string;
     ContactOther?: string;
+    By?: string;
 }

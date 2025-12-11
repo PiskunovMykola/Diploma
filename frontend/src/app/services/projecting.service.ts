@@ -1,16 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, finalize } from 'rxjs/operators'; // Добавил finalize
+import { map, finalize } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Project } from '../model/project';
-import { AngularFireStorage } from '@angular/fire/compat/storage'; // Добавил импорт Firebase Storage
+import { AngularFireStorage } from '@angular/fire/compat/storage';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectingService {
   
-  // Добавил private storage: AngularFireStorage в конструктор
   constructor(private http: HttpClient, private storage: AngularFireStorage) { }
 
   getProject(id: number){
@@ -30,15 +29,27 @@ export class ProjectingService {
         const localProjects = localProjectsString ? JSON.parse(localProjectsString) : null;
 
         if (localProjects) {
-          for (const id in localProjects) {
-            if(Sell){
-              if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
-                projectsArray.push(localProjects[id]);
-              }
-            }
-            else{
-              projectsArray.push(localProjects[id]);
-            }
+          // Если это массив (а addProject сохраняет массив), проходим через for..of
+          if (Array.isArray(localProjects)) {
+             for (const p of localProjects) {
+                if(Sell){
+                   if (p.Sell === Sell) projectsArray.push(p);
+                } else {
+                   projectsArray.push(p);
+                }
+             }
+          } else {
+             // Поддержка старого формата, если вдруг там был объект
+             for (const id in localProjects) {
+               if(Sell){
+                 if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
+                   projectsArray.push(localProjects[id]);
+                 }
+               }
+               else{
+                 projectsArray.push(localProjects[id]);
+               }
+             }
           }
         }
 
@@ -59,18 +70,16 @@ export class ProjectingService {
 
   addProject(project: Project) {
     let newProject = [project];
-  
     const storedProjects = localStorage.getItem('newProject');
     if (storedProjects) {
+      // Разворачиваем старый массив и добавляем новый проект в начало
       newProject = [project, ...JSON.parse(storedProjects)];
     }
-  
     localStorage.setItem('newProject', JSON.stringify(newProject));
   }
   
   newProjID(): number {
     const pid = localStorage.getItem('PID');
-    
     if (pid !== null) {
       const newPid = +pid + 1;
       localStorage.setItem('PID', String(newPid));
@@ -81,13 +90,11 @@ export class ProjectingService {
     }
   }
 
-  // === ЭТОТ МЕТОД НУЖЕН ДЛЯ ЗАГРУЗКИ КАРТИНКИ ===
   uploadFile(file: File): Observable<string> {
-    const filePath = `project-images/${Date.now()}_${file.name}`; // Генерируем уникальное имя
+    const filePath = `project-images/${Date.now()}_${file.name}`;
     const fileRef = this.storage.ref(filePath);
     const task = this.storage.upload(filePath, file);
 
-    // Возвращаем поток, который вернет URL картинки после полной загрузки
     return new Observable<string>(observer => {
       task.snapshotChanges().pipe(
         finalize(() => {
@@ -101,15 +108,27 @@ export class ProjectingService {
   }
 
   updateProject(project: Project) {
-  const storedProjects = localStorage.getItem('newProject');
-  if (storedProjects) {
-    const projectsArray = JSON.parse(storedProjects) as Project[];
-    const index = projectsArray.findIndex(p => p.Id === project.Id);
-    if (index !== -1) {
-      projectsArray[index] = project;
-      localStorage.setItem('newProject', JSON.stringify(projectsArray));
+    const storedProjects = localStorage.getItem('newProject');
+    if (storedProjects) {
+      const projectsArray = JSON.parse(storedProjects) as Project[];
+      const index = projectsArray.findIndex(p => p.Id === project.Id);
+      if (index !== -1) {
+        projectsArray[index] = project;
+        localStorage.setItem('newProject', JSON.stringify(projectsArray));
+      }
     }
   }
-}
-  
+
+  // === НОВЫЙ МЕТОД: УДАЛЕНИЕ ===
+  deleteProject(id: number) {
+    const storedProjects = localStorage.getItem('newProject');
+    if (storedProjects) {
+      let projectsArray = JSON.parse(storedProjects) as any[];
+      // Фильтруем массив: оставляем все, кроме удаляемого ID
+      // Используем строгое неравенство, приводим типы если нужно
+      const newArray = projectsArray.filter(p => Number(p.Id) !== Number(id));
+      
+      localStorage.setItem('newProject', JSON.stringify(newArray));
+    }
+  }
 }

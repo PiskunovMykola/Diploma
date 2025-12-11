@@ -4,9 +4,16 @@
         <img *ngIf="!project.Image" class="card-img-top" src="assets/images/project-default1.png">
 
         <ul *ngIf="!hideIcons" class="list-inline text-center member-icons animate">
-            <li class="list-inline-item">
+            
+            <li class="list-inline-item" *ngIf="isOwnProject">
                 <button class="btn btn-primary" routerLink="/edit-project/{{project.Id}}">
                     <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+            </li>
+            
+            <li class="list-inline-item" *ngIf="isOwnProject">
+                <button class="btn btn-danger" (click)="onDeleteProject()">
+                    <i class="fa-solid fa-trash"></i>
                 </button>
             </li>
             <li class="list-inline-item">

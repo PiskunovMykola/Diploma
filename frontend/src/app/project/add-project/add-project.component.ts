@@ -242,6 +242,10 @@ export class AddProjectComponent implements OnInit {
     this.project.ContactEmail = this.ContactEmail.value;
     this.project.ContactPhone = this.ContactPhone.value;
     this.project.ContactOther = this.ContactOther.value;
+    if (!this.editMode) {
+        // Записываем email (token) как автора
+        this.project.By = localStorage.getItem('token') || 'Unknown';
+    }
   }
 
   allTabsValid(): boolean {

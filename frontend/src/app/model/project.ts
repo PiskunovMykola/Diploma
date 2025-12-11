@@ -15,4 +15,5 @@ export class Project implements IProjectBase{
     ContactEmail?: string;
     ContactPhone?: string;
     ContactOther?: string;
+    By?: string;
 }
