@@ -99,5 +99,17 @@ export class ProjectingService {
       ).subscribe();
     });
   }
+
+  updateProject(project: Project) {
+  const storedProjects = localStorage.getItem('newProject');
+  if (storedProjects) {
+    const projectsArray = JSON.parse(storedProjects) as Project[];
+    const index = projectsArray.findIndex(p => p.Id === project.Id);
+    if (index !== -1) {
+      projectsArray[index] = project;
+      localStorage.setItem('newProject', JSON.stringify(projectsArray));
+    }
+  }
+}
   
 }

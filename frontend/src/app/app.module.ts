@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule, provideClientHydration } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
-import {Routes, RouterModule} from '@angular/router';
+import { Routes, RouterModule } from '@angular/router'; // Импорты роутинга
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { NgxGalleryModule } from '@kolkov/ngx-gallery';
@@ -34,16 +34,20 @@ import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
 
 const appRoutes: Routes = [
-  {path: '', component: ProjectListComponent},
-  {path: 'sell-project', component: ProjectListComponent},
-  {path: 'add-project', component: AddProjectComponent},
-  {path: 'project-detail/:id', component: ProjectDetailComponent, resolve: {prj: ProjectDetailResolverService}},
-  {path: 'user/login', component: LoginComponent},
-  {path: 'user/register', component: RegisterComponent},
+  { path: '', component: ProjectListComponent },
+  { path: 'sell-project', component: ProjectListComponent },
+  { path: 'add-project', component: AddProjectComponent },
+  
+  // === ВОТ ЭТУ СТРОКУ МЫ ДОБАВИЛИ ===
+  { path: 'edit-project/:id', component: AddProjectComponent },
+  // ==================================
+
+  { path: 'project-detail/:id', component: ProjectDetailComponent, resolve: {prj: ProjectDetailResolverService} },
+  { path: 'user/login', component: LoginComponent },
+  { path: 'user/register', component: RegisterComponent },
   { path: 'user/profile', component: UserProfileComponent },
   { path: 'user/password', component: EditPasswordComponent },
-  {path: '**', component: ProjectListComponent}
-  
+  { path: '**', component: ProjectListComponent }
 ]
 
 @NgModule({
@@ -67,7 +71,7 @@ const appRoutes: Routes = [
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule.forRoot(appRoutes),
+    RouterModule.forRoot(appRoutes), // Подключаем наши маршруты здесь
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
     NgSelectModule,

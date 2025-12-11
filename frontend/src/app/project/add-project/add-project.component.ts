@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { IProjectBase } from '../../model/iprojectbase';
 import { ProjectingService } from '../../services/projecting.service';
@@ -19,46 +19,94 @@ export class AddProjectComponent implements OnInit {
   projectTypes: Array<string> = ['Web', 'Mobile', 'Game', 'AI', 'Cloud technologies', 
     'Big data', 'Internet of Things', 'Cybersecurity', 'Software', 'Blockchain'];
   
-  // ФОТО и ВИДЕО переменные
+  // Переменные для медиа
   uploadedImages: string[] = []; 
   isImageUploading: boolean = false;
   uploadedVideoUrls: string[] = [];
   isVideoUploading: boolean = false;
 
+  // Режим редактирования
+  projectId: number | null = null;
+  editMode: boolean = false;
+
   projectView: IProjectBase = {
-    Id: 0,
-    Sell: 0,
-    Name: '',
-    Type: '',
-    Price: 0,
-    Location: '',
-    Technologies: '',
-    Image: '',
-    Description: '',
-    Photos: [],
-    Videos: [],
-    ContactEmail: '',
-    ContactPhone: '',
-    ContactOther: ''
+    Id: 0, Sell: 0, Name: '', Type: '', Price: 0, Location: '', Technologies: '', 
+    Image: '', Description: '', Photos: [], Videos: [], 
+    ContactEmail: '', ContactPhone: '', ContactOther: ''
   };
 
   constructor(
     private fb: FormBuilder, 
     private router: Router,
-    private projectingService: ProjectingService) { }
+    private route: ActivatedRoute, // Для получения ID из URL
+    private projectingService: ProjectingService
+  ) { }
 
   ngOnInit() {
     this.CreateAddProjectForm();
+    
+    // === 1. ПРОВЕРЯЕМ URL НА НАЛИЧИЕ ID ===
+    this.projectId = +this.route.snapshot.params['id'];
+
+    if (this.projectId) {
+      this.editMode = true; // Включаем режим редактирования
+      this.loadProjectData(this.projectId); // Загружаем данные
+    }
+
+    // Подписка на изменения формы для превью
     this.addProjectForm.valueChanges.subscribe(value => {
       this.projectView = { 
         ...this.projectView, 
         ...value.BasicInfo, 
         ...value.PriceTechInfo,
-        ...value.ContactInfo // Обновляем превью контактов (если нужно)
+        ...value.ContactInfo 
       };
-      
       if (this.uploadedImages.length > 0) {
         this.projectView.Image = this.uploadedImages[0];
+      }
+    });
+  }
+
+  // === 2. МЕТОД ЗАГРУЗКИ ДАННЫХ В ФОРМУ ===
+  loadProjectData(id: number) {
+    this.projectingService.getProject(id).subscribe((data: Project) => {
+      if (data) {
+        this.project = data;
+        this.projectView = data; // Обновляем превью справа
+
+        // Самое важное: Заполняем поля формы (patchValue)
+        this.addProjectForm.patchValue({
+          BasicInfo: {
+            Sell: data.Sell.toString(), // Радио-кнопки ждут строку
+            Name: data.Name,
+            Type: data.Type,
+            Location: data.Location
+          },
+          PriceTechInfo: {
+            Price: data.Price,
+            Technologies: data.Technologies
+          },
+          OtherInfo: {
+            Description: data.Description
+          },
+          ContactInfo: {
+            ContactEmail: data.ContactEmail,
+            ContactPhone: data.ContactPhone,
+            ContactOther: data.ContactOther
+          }
+        });
+
+        // Восстанавливаем фото и видео
+        if (data.Photos) {
+          this.uploadedImages = data.Photos;
+        } else if (data.Image) {
+           // Если старый проект без массива Photos
+           this.uploadedImages = [data.Image];
+        }
+
+        if (data.Videos) {
+          this.uploadedVideoUrls = data.Videos;
+        }
       }
     });
   }
@@ -80,54 +128,54 @@ export class AddProjectComponent implements OnInit {
       }),
       ContactInfo: this.fb.group({
         ContactEmail: [null, [Validators.required, Validators.email]],
-        ContactPhone: [null],
-        ContactOther: [null]
+        ContactPhone: [null], 
+        ContactOther: [null] 
       })
     });
   }
-  
-  onFileSelected(event: any) { /* код из прошлого ответа */ 
-      const file: File = event.target.files[0];
-      if (file) {
-        this.isImageUploading = true;
-        this.projectingService.uploadFile(file).subscribe({
-          next: (url) => {
-            this.isImageUploading = false;
-            this.uploadedImages.push(url);
-            if (this.uploadedImages.length === 1) this.projectView.Image = url; 
-            event.target.value = ''; 
-          },
-          error: (error) => { console.error(error); this.isImageUploading = false; }
-        });
-      }
+
+  // === МЕТОДЫ ЗАГРУЗКИ ФАЙЛОВ ===
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.isImageUploading = true;
+      this.projectingService.uploadFile(file).subscribe({
+        next: (url) => {
+          this.isImageUploading = false;
+          this.uploadedImages.push(url);
+          if (this.uploadedImages.length === 1) this.projectView.Image = url; 
+          event.target.value = ''; 
+        },
+        error: (error) => { console.error(error); this.isImageUploading = false; }
+      });
+    }
   }
 
-  onVideoSelected(event: any) { /* код из прошлого ответа */ 
-      const file: File = event.target.files[0];
-      if (file) {
-        this.isVideoUploading = true;
-        this.projectingService.uploadFile(file).subscribe({
-          next: (url) => {
-            this.isVideoUploading = false;
-            this.uploadedVideoUrls.push(url);
-            event.target.value = '';
-          },
-          error: (error) => { console.error(error); this.isVideoUploading = false; }
-        });
-      }
+  onVideoSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.isVideoUploading = true;
+      this.projectingService.uploadFile(file).subscribe({
+        next: (url) => {
+          this.isVideoUploading = false;
+          this.uploadedVideoUrls.push(url);
+          event.target.value = '';
+        },
+        error: (error) => { console.error(error); this.isVideoUploading = false; }
+      });
+    }
   }
 
+  // Управление медиа
   removeImage(index: number) { this.uploadedImages.splice(index, 1); if (this.uploadedImages.length > 0) this.projectView.Image = this.uploadedImages[0]; else this.projectView.Image = ''; }
   moveImage(index: number, step: number) { const newIndex = index + step; if (newIndex >= 0 && newIndex < this.uploadedImages.length) { const temp = this.uploadedImages[index]; this.uploadedImages[index] = this.uploadedImages[newIndex]; this.uploadedImages[newIndex] = temp; this.projectView.Image = this.uploadedImages[0]; } }
   removeVideo(index: number) { this.uploadedVideoUrls.splice(index, 1); }
   moveVideo(index: number, step: number) { const newIndex = index + step; if (newIndex >= 0 && newIndex < this.uploadedVideoUrls.length) { const temp = this.uploadedVideoUrls[index]; this.uploadedVideoUrls[index] = this.uploadedVideoUrls[newIndex]; this.uploadedVideoUrls[newIndex] = temp; } }
 
-
-  // Геттеры для форм
+  // Геттеры
   get BasicInfo() { return this.addProjectForm.controls['BasicInfo'] as FormGroup; }
   get PriceTechInfo() { return this.addProjectForm.controls['PriceTechInfo'] as FormGroup; }
   get OtherInfo() { return this.addProjectForm.controls['OtherInfo'] as FormGroup; }
-  // НОВЫЙ ГЕТТЕР
   get ContactInfo() { return this.addProjectForm.controls['ContactInfo'] as FormGroup; }
   
   get Sell() { return this.BasicInfo.controls['Sell']; }
@@ -137,8 +185,6 @@ export class AddProjectComponent implements OnInit {
   get Price() { return this.PriceTechInfo.controls['Price'] as FormControl; }
   get Technologies() { return this.PriceTechInfo.controls['Technologies'] as FormControl; }
   get Description() { return this.OtherInfo.controls['Description'] as FormControl; }
-  
-  // Геттеры для полей контактов
   get ContactEmail() { return this.ContactInfo.controls['ContactEmail'] as FormControl; }
   get ContactPhone() { return this.ContactInfo.controls['ContactPhone'] as FormControl; }
   get ContactOther() { return this.ContactInfo.controls['ContactOther'] as FormControl; }
@@ -152,25 +198,35 @@ export class AddProjectComponent implements OnInit {
     if (this.allTabsValid()) {
       this.mapProject();
       
-      const storedProjects = localStorage.getItem('newProject');
-      let projectsArray = storedProjects ? JSON.parse(storedProjects) : [];
-      projectsArray = Array.isArray(projectsArray) ? projectsArray : []; 
-      projectsArray.push(this.project);
+      if (this.editMode) {
+        // РЕЖИМ РЕДАКТИРОВАНИЯ
+        this.projectingService.updateProject(this.project);
+        alert('Project updated successfully!');
+      } else {
+        // РЕЖИМ СОЗДАНИЯ
+        const storedProjects = localStorage.getItem('newProject');
+        let projectsArray = storedProjects ? JSON.parse(storedProjects) : [];
+        projectsArray = Array.isArray(projectsArray) ? projectsArray : []; 
+        projectsArray.push(this.project);
+        localStorage.setItem('newProject', JSON.stringify(projectsArray));
+        alert('Project created successfully!');
+      }
 
-      localStorage.setItem('newProject', JSON.stringify(projectsArray));
-    
       if (this.Sell.value === '2') {
         this.router.navigate(['/sell-project']);
       } else {
         this.router.navigate(['/']);
       }
+
     } else {
         alert('Please fill all required fields');
     }
   }
 
   mapProject(): void{
-    this.project.Id = this.projectingService.newProjID();
+    // Если редактируем, оставляем старый ID. Если создаем - новый.
+    this.project.Id = this.editMode ? this.projectId! : this.projectingService.newProjID();
+    
     this.project.Sell = +this.Sell.value;
     this.project.Name = this.Name.value;
     this.project.Type = this.Type.value;
@@ -183,7 +239,6 @@ export class AddProjectComponent implements OnInit {
     this.project.Photos = this.uploadedImages;
     this.project.Videos = this.uploadedVideoUrls;
 
-    // === СОХРАНЕНИЕ КОНТАКТОВ ===
     this.project.ContactEmail = this.ContactEmail.value;
     this.project.ContactPhone = this.ContactPhone.value;
     this.project.ContactOther = this.ContactOther.value;
@@ -202,9 +257,8 @@ export class AddProjectComponent implements OnInit {
       this.formTabs.tabs[2].active = true;
       return false;
     }
-    // Проверка контактов
     if (this.ContactInfo.invalid) {
-        this.formTabs.tabs[4].active = true; // Индекс вкладки Contact
+        this.formTabs.tabs[4].active = true;
         return false;
     }
     return true;
