@@ -9,45 +9,60 @@ import { ProjectingService } from '../../services/projecting.service';
   styleUrls: ['./project-list.component.css']
 })
 export class ProjectListComponent implements OnInit {
-  Sell = 1;
   projects: Array<IProjectBase> = [];
+  
+  // Переменные для фильтрации и сортировки (ваши старые)
   FilterField = 'Technologies'; 
   FilterValue = ''; 
   SortbyParam = '';
   SortDirection = 'asc';
+  
+  // Флаг: мы в разделе "Мои проекты" (Sell) или "Магазин" (Buy)?
+  isMyProjectsPage = false; 
 
-  constructor(private route: ActivatedRoute, private projectingService: ProjectingService) {}
+  constructor(
+    private route: ActivatedRoute, 
+    private projectingService: ProjectingService
+  ) {}
 
   ngOnInit(): void {
-    // Проверка маршрута (оставляем вашу логику: если есть URL, значит режим 2)
+    // 1. Определяем, на какой мы странице
+    // Если в URL есть что-то (например 'sell-project'), считаем это страницей "Мои проекты"
     if (this.route.snapshot.url.toString()) {
-      this.Sell = 2;
+      this.isMyProjectsPage = true;
     }
 
-    // Загрузка данных
-    // ТЕПЕРЬ ВСЕ ДАННЫЕ ПРИХОДЯТ ИЗ FIREBASE ЧЕРЕЗ СЕРВИС
-    this.projectingService.getAllProjects(this.Sell).subscribe(
+    // 2. Получаем ID текущего пользователя
+    // (Используем безопасную проверку для SSR)
+    let currentUserId = '';
+    if (typeof localStorage !== 'undefined') {
+      currentUserId = localStorage.getItem('token') || '';
+    }
+
+    // 3. Загружаем ВСЕ проекты и фильтруем здесь
+    this.projectingService.getAllProjects().subscribe(
       data => {
-        this.projects = data;
-        console.log('Projects loaded from Firebase:', data);
+        if (this.isMyProjectsPage) {
+          // === ЛОГИКА ДЛЯ РАЗДЕЛА SELL (МОИ ПРОЕКТЫ) ===
+          // Показываем только те, которые создал Я
+          this.projects = data.filter(p => p.By === currentUserId);
+        } else {
+          // === ЛОГИКА ДЛЯ РАЗДЕЛА BUY (ЧУЖИЕ ПРОЕКТЫ) ===
+          // Показываем проекты, созданные ДРУГИМИ людьми
+          // (Если я не залогинен, currentUserId пустой, значит увижу всё)
+          this.projects = data.filter(p => p.By !== currentUserId);
+        }
+        
+        console.log('Projects loaded:', this.projects);
       },
       error => {
-        console.log('Http/Firebase error:');
-        console.log(error);
+        console.log('Http error:', error);
       }
     );
   }
 
-  onFilter() {
-    this.FilterValue = this.FilterValue.trim(); 
-  }
-
-  onFilterClear() {
-    this.FilterValue = ''; 
-    this.FilterField = 'Technologies'; 
-  }
-
-  onSortDirection() {
-    this.SortDirection = this.SortDirection === 'asc' ? 'desc' : 'asc';
-  }
+  // Ваши методы фильтрации (оставляем без изменений)
+  onFilter() { this.FilterValue = this.FilterValue.trim(); }
+  onFilterClear() { this.FilterValue = ''; this.FilterField = 'Technologies'; }
+  onSortDirection() { this.SortDirection = this.SortDirection === 'asc' ? 'desc' : 'asc'; }
 }

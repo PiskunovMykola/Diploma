@@ -29,21 +29,14 @@ export class ProjectingService {
     );
   }
 
-  // === 2. ПОЛУЧЕНИЕ ВСЕХ ПРОЕКТОВ (из Базы Данных) ===
-  getAllProjects(Sell?: number): Observable<Project[]> {
-    // 'projects' — это название папки в базе, где лежат данные
+  // === 2. ПОЛУЧЕНИЕ ВСЕХ ПРОЕКТОВ ===
+  // Убрали аргумент Sell, теперь просто возвращаем всё
+  getAllProjects(): Observable<Project[]> {
     return this.db.list('projects').valueChanges().pipe(
       map((data: any[]) => {
         const projectsArray = data as Project[];
-
         if (!projectsArray) return [];
-
-        if (Sell) {
-          // Если передан параметр Sell (1 - продажа, 2 - аренда/покупка), фильтруем
-          return projectsArray.filter(p => p.Sell === Sell);
-        } else {
-          return projectsArray;
-        }
+        return projectsArray;
       })
     );
   }

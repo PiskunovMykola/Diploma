@@ -34,6 +34,7 @@ import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 import { provideHttpClient, withFetch } from '@angular/common/http';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 
 const appRoutes: Routes = [
   { path: '', component: ProjectListComponent },
@@ -82,7 +83,8 @@ const appRoutes: Routes = [
     AngularFireModule.initializeApp(environment.firebase), 
     AngularFireStorageModule,
     AngularFireModule.initializeApp(environment.firebase), 
-    AngularFireDatabaseModule 
+    AngularFireDatabaseModule,
+    AngularFireAuthModule
   ],
   providers: [
     provideClientHydration(),

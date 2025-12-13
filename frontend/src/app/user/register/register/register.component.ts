@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { UserService } from '../../../services/user.service';
+import { AuthService } from '../../../services/auth.service'; // Используем AuthService
 import { User } from '../../../model/user';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router'; // Добавили роутер
 
 @Component({
   selector: 'app-register',
@@ -13,7 +14,13 @@ export class RegisterComponent implements OnInit {
   registrationForm!: FormGroup;
   user!: User;
   userSubmitted!: boolean;
-  constructor(private fb: FormBuilder, private userService: UserService, private toastr: ToastrService) { }
+
+  constructor(
+    private fb: FormBuilder, 
+    private authService: AuthService, // Изменили сервис
+    private toastr: ToastrService,
+    private router: Router // Внедрили роутер для переадресации
+  ) { }
 
   ngOnInit() {
     this.createRegistrationForm();
@@ -23,12 +30,10 @@ export class RegisterComponent implements OnInit {
     this.registrationForm = this.fb.group({
       userName: [null, Validators.required],
       email: [null, [Validators.required, Validators.email]],
-      password: [null, [Validators.required, Validators.minLength(8)]],
+      password: [null, [Validators.required, Validators.minLength(6)]], // Firebase требует минимум 6 символов (у вас было 8, можно оставить 8)
       confirmPassword: [null, Validators.required],
       mobile: [null, [Validators.required, Validators.maxLength(10)]],
     }, {validator: this.passwordMatchingValidator});
-
-    
   }
 
   passwordMatchingValidator(fc: AbstractControl): ValidationErrors | null {
@@ -36,22 +41,31 @@ export class RegisterComponent implements OnInit {
       { notmatched: true };
   }
 
-
   onSubmit(){
     console.log(this.registrationForm.value);
     this.userSubmitted = true;
 
     if(this.registrationForm.valid){
-      //this.userService.addUser(this.userData());
-      //this.registrationForm.reset();
-      const user = this.userData();
-      this.userService.addUser(user);
+      
+      // === ВЫЗОВ FIREBASE ===
+      this.authService.register(this.userData())
+        .then(() => {
+           // УСПЕХ
+           this.toastr.success('Congratulations, you have successfully registered!');
+           this.userSubmitted = false;
+           this.registrationForm.reset();
+           
+           // После регистрации сразу логиним и переходим на главную
+           // Или можно перекинуть на страницу входа: this.router.navigate(['/user/login']);
+           this.router.navigate(['/']); 
+        })
+        .catch((error) => {
+           // ОШИБКА (например, email уже занят)
+           console.error(error);
+           this.toastr.error('Registration failed: ' + error.message);
+        });
 
-      // Сохранение данных в localStorage для последующего использования
-      localStorage.setItem('user', JSON.stringify(user));
-      this.userSubmitted = false;
-      this.toastr.success('Congratulations, you have successfully  registered!');
-    } else{
+    } else {
       this.toastr.error('Kindly fill in the required fields!');
     }
   }
@@ -65,6 +79,7 @@ export class RegisterComponent implements OnInit {
     }
   }
 
+  // Геттеры
   get userName(){
     return this.registrationForm.get('userName') as FormControl;
   }
