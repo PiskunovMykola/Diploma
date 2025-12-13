@@ -19,23 +19,20 @@ export class ProjectListComponent implements OnInit {
   constructor(private route: ActivatedRoute, private projectingService: ProjectingService) {}
 
   ngOnInit(): void {
+    // Проверка маршрута (оставляем вашу логику: если есть URL, значит режим 2)
     if (this.route.snapshot.url.toString()) {
       this.Sell = 2;
     }
+
+    // Загрузка данных
+    // ТЕПЕРЬ ВСЕ ДАННЫЕ ПРИХОДЯТ ИЗ FIREBASE ЧЕРЕЗ СЕРВИС
     this.projectingService.getAllProjects(this.Sell).subscribe(
       data => {
         this.projects = data;
-        const newProjectString = localStorage.getItem('newProject');
-        if (newProjectString) {
-          const newProject = JSON.parse(newProjectString);
-          if (newProject.Sell == this.Sell) {
-            this.projects = [newProject, ...this.projects];
-          }
-        }
-        console.log(data);
+        console.log('Projects loaded from Firebase:', data);
       },
       error => {
-        console.log('httperror:');
+        console.log('Http/Firebase error:');
         console.log(error);
       }
     );

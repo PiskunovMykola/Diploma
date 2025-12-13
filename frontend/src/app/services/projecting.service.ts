@@ -4,80 +4,57 @@ import { map, finalize } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Project } from '../model/project';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { AngularFireDatabase } from '@angular/fire/compat/database'; // Добавили базу
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectingService {
   
-  constructor(private http: HttpClient, private storage: AngularFireStorage) { }
+  // Внедрили private db: AngularFireDatabase
+  constructor(
+    private http: HttpClient, 
+    private storage: AngularFireStorage,
+    private db: AngularFireDatabase 
+  ) { }
 
-  getProject(id: number){
+  // === 1. ПОЛУЧЕНИЕ ОДНОГО ПРОЕКТА ===
+  getProject(id: number): Observable<Project> {
     return this.getAllProjects().pipe(
-      map(projectsArray =>{
-        return projectsArray.find(p => p.Id === id) as Project;
+      map(projects => {
+        // Добавили 'as Project' в конце
+        // Это принудительно говорит TypeScript'у, что результат не будет undefined
+        return projects.find(p => p.Id === id) as Project;
       })
     );
   }
 
+  // === 2. ПОЛУЧЕНИЕ ВСЕХ ПРОЕКТОВ (из Базы Данных) ===
   getAllProjects(Sell?: number): Observable<Project[]> {
-    return this.http.get<{ [key: string]: Project }>('data/projects.json').pipe(
-      map(data => {
-        const projectsArray: Array<Project> = [];
+    // 'projects' — это название папки в базе, где лежат данные
+    return this.db.list('projects').valueChanges().pipe(
+      map((data: any[]) => {
+        const projectsArray = data as Project[];
 
-        const localProjectsString = localStorage.getItem('newProject');
-        const localProjects = localProjectsString ? JSON.parse(localProjectsString) : null;
+        if (!projectsArray) return [];
 
-        if (localProjects) {
-          // Если это массив (а addProject сохраняет массив), проходим через for..of
-          if (Array.isArray(localProjects)) {
-             for (const p of localProjects) {
-                if(Sell){
-                   if (p.Sell === Sell) projectsArray.push(p);
-                } else {
-                   projectsArray.push(p);
-                }
-             }
-          } else {
-             // Поддержка старого формата, если вдруг там был объект
-             for (const id in localProjects) {
-               if(Sell){
-                 if (localProjects.hasOwnProperty(id) && localProjects[id].Sell === Sell) {
-                   projectsArray.push(localProjects[id]);
-                 }
-               }
-               else{
-                 projectsArray.push(localProjects[id]);
-               }
-             }
-          }
+        if (Sell) {
+          // Если передан параметр Sell (1 - продажа, 2 - аренда/покупка), фильтруем
+          return projectsArray.filter(p => p.Sell === Sell);
+        } else {
+          return projectsArray;
         }
-
-        for (const id in data) {
-          if(Sell){
-            if (Object.prototype.hasOwnProperty.call(data, id) && data[id].Sell === Sell) {
-              projectsArray.push(data[id]);
-            }
-          } else {
-            projectsArray.push(data[id]);
-          }
-        }
-
-        return projectsArray;
       })
     );
   }
 
+  // === 3. ДОБАВЛЕНИЕ ПРОЕКТА ===
   addProject(project: Project) {
-    let newProject = [project];
-    const storedProjects = localStorage.getItem('newProject');
-    if (storedProjects) {
-      // Разворачиваем старый массив и добавляем новый проект в начало
-      newProject = [project, ...JSON.parse(storedProjects)];
-    }
-    localStorage.setItem('newProject', JSON.stringify(newProject));
+    // push создает новую запись с уникальным ключом
+    this.db.list('projects').push(project);
   }
   
+  // === 4. ГЕНЕРАТОР ID (пока оставим локальным для простоты) ===
   newProjID(): number {
     const pid = localStorage.getItem('PID');
     if (pid !== null) {
@@ -90,6 +67,7 @@ export class ProjectingService {
     }
   }
 
+  // === 5. ЗАГРУЗКА ФАЙЛА (оставляем как есть) ===
   uploadFile(file: File): Observable<string> {
     const filePath = `project-images/${Date.now()}_${file.name}`;
     const fileRef = this.storage.ref(filePath);
@@ -107,28 +85,58 @@ export class ProjectingService {
     });
   }
 
-  updateProject(project: Project) {
-    const storedProjects = localStorage.getItem('newProject');
-    if (storedProjects) {
-      const projectsArray = JSON.parse(storedProjects) as Project[];
-      const index = projectsArray.findIndex(p => p.Id === project.Id);
-      if (index !== -1) {
-        projectsArray[index] = project;
-        localStorage.setItem('newProject', JSON.stringify(projectsArray));
-      }
-    }
+ // === 6. ОБНОВЛЕНИЕ ПРОЕКТА (С ЗАЩИТОЙ ОТ UNDEFINED) ===
+  updateProject(project: Project): Promise<void> {
+    const targetId = Number(project.Id);
+    console.log('🔍 Попытка обновления проекта с ID:', targetId);
+
+    const itemsRef = this.db.list('projects', ref => ref.orderByChild('Id').equalTo(targetId));
+    
+    return new Promise((resolve, reject) => {
+      const sub = itemsRef.snapshotChanges().subscribe(items => {
+        sub.unsubscribe(); // Отписываемся сразу
+        
+        if (items.length > 0 && items[0].key) {
+          console.log('✅ Проект найден, ключ:', items[0].key);
+
+          // === ВОТ ЗДЕСЬ МАГИЯ ===
+          // Мы превращаем объект в JSON-строку и обратно.
+          // Это автоматически удаляет все поля, равные undefined
+          const cleanProject = JSON.parse(JSON.stringify(project)); 
+          // ======================
+
+          this.db.list('projects').update(items[0].key, cleanProject)
+            .then(() => {
+               console.log('🎉 Обновление успешно');
+               resolve();
+            })
+            .catch(error => {
+               console.error('❌ Ошибка Firebase:', error);
+               reject(error);
+            });
+        } else {
+          console.error('⛔ Проект не найден (проверьте ID)');
+          reject('Project not found');
+        }
+      });
+    });
   }
 
-  // === НОВЫЙ МЕТОД: УДАЛЕНИЕ ===
+  // === 7. УДАЛЕНИЕ ПРОЕКТА ===
   deleteProject(id: number) {
-    const storedProjects = localStorage.getItem('newProject');
-    if (storedProjects) {
-      let projectsArray = JSON.parse(storedProjects) as any[];
-      // Фильтруем массив: оставляем все, кроме удаляемого ID
-      // Используем строгое неравенство, приводим типы если нужно
-      const newArray = projectsArray.filter(p => Number(p.Id) !== Number(id));
-      
-      localStorage.setItem('newProject', JSON.stringify(newArray));
-    }
+    // 1. Ищем запись по ID
+    const itemsRef = this.db.list('projects', ref => ref.orderByChild('Id').equalTo(id));
+    
+    // 2. Удаляем по ключу
+    const sub = itemsRef.snapshotChanges().pipe(
+      map(changes => 
+        changes.map(c => ({ key: c.payload.key, ...c.payload.val() as any }))
+      )
+    ).subscribe(items => {
+      if (items.length > 0 && items[0].key) {
+        this.db.list('projects').remove(items[0].key);
+        sub.unsubscribe();
+      }
+    });
   }
 }

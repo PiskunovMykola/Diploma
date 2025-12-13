@@ -32,15 +32,15 @@ import { EditPasswordComponent } from './user/edit-password/edit-password.compon
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { AngularFireModule } from '@angular/fire/compat';
 import { environment } from '../environments/environment';
+import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 
 const appRoutes: Routes = [
   { path: '', component: ProjectListComponent },
   { path: 'sell-project', component: ProjectListComponent },
   { path: 'add-project', component: AddProjectComponent },
   
-  // === ВОТ ЭТУ СТРОКУ МЫ ДОБАВИЛИ ===
   { path: 'edit-project/:id', component: AddProjectComponent },
-  // ==================================
 
   { path: 'project-detail/:id', component: ProjectDetailComponent, resolve: {prj: ProjectDetailResolverService} },
   { path: 'user/login', component: LoginComponent },
@@ -71,7 +71,7 @@ const appRoutes: Routes = [
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule.forRoot(appRoutes), // Подключаем наши маршруты здесь
+    RouterModule.forRoot(appRoutes), 
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
     NgSelectModule,
@@ -80,14 +80,17 @@ const appRoutes: Routes = [
     ButtonsModule.forRoot(),
     NgxGalleryModule,
     AngularFireModule.initializeApp(environment.firebase), 
-    AngularFireStorageModule
+    AngularFireStorageModule,
+    AngularFireModule.initializeApp(environment.firebase), 
+    AngularFireDatabaseModule 
   ],
   providers: [
     provideClientHydration(),
     ProjectingService,
     UserService,
     AuthService,
-    ProjectDetailResolverService
+    ProjectDetailResolverService,
+    provideHttpClient(withFetch())
   ],
   bootstrap: [AppComponent]
 })
