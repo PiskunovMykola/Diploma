@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService } from '../services/user.service';
-import { User } from '../model/user';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { UserService } from '../services/user.service';
+import { ProjectingService } from '../services/projecting.service';
+import { User } from '../model/user';
 
 @Component({
   selector: 'app-user-profile',
@@ -12,79 +13,135 @@ import { ToastrService } from 'ngx-toastr';
 export class UserProfileComponent implements OnInit {
   user: User | null = null;
   profileForm!: FormGroup;
-  selectedImage: any = null;
+  currentUserId: string | null = null;
+  
+  // Variables for photo
+  selectedImageFile: File | null = null;
+  previewImage: string | null = null; 
+  isImageUploading: boolean = false;
 
   constructor(
     private userService: UserService,
+    private projectingService: ProjectingService, 
     private fb: FormBuilder,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    // Получаем email текущего пользователя из localStorage
-    const currentUserEmail = localStorage.getItem('currentUserEmail');
+    // === 1. CRITICAL FIX: Initialize form IMMEDIATELY ===
+    // This prevents the "formGroup expects a FormGroup instance" error
+    this.createForm(); 
 
-    if (!currentUserEmail) {
-      console.log('No email found in localStorage.');
-      return; // Если email не найден в localStorage, прекратить выполнение
+    // 2. Get current UID
+    if (typeof localStorage !== 'undefined') {
+        this.currentUserId = localStorage.getItem('token');
     }
 
-    // Ищем пользователя по email
-    this.user = this.userService.getUserByEmail(currentUserEmail);
-
-    if (!this.user) {
-      console.log('User not found for email:', currentUserEmail);
-      return; // Если пользователь не найден, выходим
+    if (!this.currentUserId) {
+      this.toastr.error('You are not authorized');
+      return;
     }
 
-    // Создаем форму с данными пользователя
-    this.profileForm = this.fb.group({
-      userName: [this.user.userName, Validators.required],
-      email: [{ value: this.user.email, disabled: true }],  // Email заблокирован для редактирования
-      mobile: [this.user.mobile, [Validators.required, Validators.maxLength(10)]], // Мобильный номер
-      bio: [this.user.bio || '', Validators.maxLength(500)],
-      profileImage: [this.user.profileImage || ''],
+    // 3. Load data from Firebase
+    this.userService.getUser(this.currentUserId).subscribe((data: any) => {
+      if (data) {
+        this.user = data;
+        
+        // Update form with data from database
+        this.profileForm.patchValue({
+          userName: data.userName,
+          email: data.email, 
+          mobile: data.mobile,
+          bio: data.bio || ''
+        });
+
+        // Show existing photo if available
+        if (data.profileImage) {
+            this.previewImage = data.profileImage;
+        }
+      }
     });
-
-    // Загружаем изображение из localStorage для текущего пользователя
-    const savedImage = this.userService.getProfileImage(currentUserEmail);
-    if (savedImage) {
-      this.selectedImage = savedImage;
-    }
   }
 
-  // Метод для обработки изменения биографии и других данных
-  onSubmit(): void {
-    if (this.profileForm.valid) {
-      const updatedUser: User = {
-        ...this.user!,
-        userName: this.profileForm.value.userName,
-        bio: this.profileForm.value.bio,
-        mobile: this.profileForm.value.mobile,  // Мобильный номер
-        profileImage: this.selectedImage || this.user!.profileImage, // Если изображение не выбрано, оставляем старое
-      };
-
-      // Обновляем пользователя в localStorage
-      this.userService.updateUser(updatedUser);
-      this.toastr.success('Profile updated successfully!');
-    } else {
-      this.toastr.error('Please fill in the required fields correctly.');
-    }
+  createForm() {
+    this.profileForm = this.fb.group({
+        userName: [null, Validators.required],
+        email: [{ value: '', disabled: true }], // Email is disabled
+        mobile: [null, [Validators.required, Validators.maxLength(10)]],
+        bio: [null, Validators.maxLength(500)]
+      });
   }
 
-  // Метод для обработки выбора изображения
+  // === SELECT PHOTO ===
   onImageSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
+      this.selectedImageFile = file;
+
+      // Create local preview
       const reader = new FileReader();
       reader.onload = () => {
-        this.selectedImage = reader.result; // Преобразуем изображение в base64
-        // Сохраняем изображение в localStorage
-        if (this.user) {
-          this.userService.setProfileImage(this.user.email, this.selectedImage);
-        }
+        this.previewImage = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  // === SUBMIT ===
+  onSubmit(): void {
+    if (this.profileForm.valid && this.currentUserId) {
+        
+        // If new photo selected, upload it first
+        if (this.selectedImageFile) {
+            this.isImageUploading = true;
+            this.projectingService.uploadFile(this.selectedImageFile).subscribe({
+                next: (photoUrl) => {
+                    this.isImageUploading = false;
+                    this.saveUserData(photoUrl); // Save data with new link
+                },
+                error: (err) => {
+                    console.error(err);
+                    this.isImageUploading = false;
+                    this.toastr.error('Error uploading photo');
+                }
+            });
+        } else {
+            // If photo didn't change, keep the old one
+            const oldImage = this.user?.profileImage || '';
+            this.saveUserData(oldImage);
+        }
+
+    } else {
+      this.toastr.error('Please fill in required fields');
+    }
+  }
+
+  saveUserData(imageUrl: string) {
+    if (!this.currentUserId) return;
+
+    // Collect object
+    const updatedUser: any = {
+        userName: this.profileForm.get('userName')?.value,
+        mobile: this.profileForm.get('mobile')?.value,
+        bio: this.profileForm.get('bio')?.value,
+        email: this.user?.email, // Keep email safe
+        profileImage: imageUrl
+    };
+    
+    // Preserve Role if exists
+    if (this.user && (this.user as any).role) {
+        updatedUser.role = (this.user as any).role;
+    }
+
+    this.userService.updateUser(this.currentUserId, updatedUser)
+        .then(() => {
+            this.toastr.success('Profile updated successfully!');
+            // Update local storage for Navbar to reflect name change immediately
+            localStorage.setItem('userName', updatedUser.userName);
+        })
+        .catch(err => {
+            this.toastr.error('Error saving data');
+            console.error(err);
+        });
   }
 }
