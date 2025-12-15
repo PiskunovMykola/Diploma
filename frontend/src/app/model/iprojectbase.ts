@@ -3,7 +3,8 @@ export interface IProjectBase{
     Sell: number;
     Name: string;
     Type: string;
-    Price: number;
+    Goal: number;
+    Funded?: number;
     Location: string;
     Technologies: string;
     Image?: string;

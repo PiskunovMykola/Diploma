@@ -5,7 +5,7 @@ import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { IProjectBase } from '../../model/iprojectbase';
 import { ProjectingService } from '../../services/projecting.service';
 import { Project } from '../../model/project';
-import { ToastrService } from 'ngx-toastr'; // <--- 1. Добавили импорт
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-add-project',
@@ -29,7 +29,7 @@ export class AddProjectComponent implements OnInit {
   editMode: boolean = false;
 
   projectView: IProjectBase = {
-    Id: 0, Sell: 0, Name: '', Type: '', Price: 0, Location: '', Technologies: '', 
+    Id: 0, Sell: 0, Name: '', Type: '', Goal: 0, Funded: 0, Location: '', Technologies: '', 
     Image: '', Description: '', Photos: [], Videos: [], 
     ContactEmail: '', ContactPhone: '', ContactOther: ''
   };
@@ -39,21 +39,18 @@ export class AddProjectComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute, 
     private projectingService: ProjectingService,
-    private toastr: ToastrService // <--- 2. Внедрили сервис уведомлений
+    private toastr: ToastrService
   ) { }
 
   ngOnInit() {
-    // === 3. ЗАЩИТА СТРАНИЦЫ ===
-    // Если токена нет - показываем ошибку и выкидываем на логин
     if (typeof localStorage !== 'undefined' && !localStorage.getItem('token')) {
         this.toastr.error('Please login to add a new project!');
         this.router.navigate(['/user/login']);
-        return; // Останавливаем выполнение, чтобы форма не грузилась
+        return;
     }
 
     this.CreateAddProjectForm();
     
-    // Проверяем, есть ли ID в адресной строке
     const idParam = this.route.snapshot.params['id'];
     if (idParam) {
       this.projectId = +idParam;
@@ -61,6 +58,7 @@ export class AddProjectComponent implements OnInit {
       this.loadProjectData(this.projectId!);
     }
 
+    // Подписка на изменения формы для превью
     this.addProjectForm.valueChanges.subscribe(value => {
       this.projectView = { 
         ...this.projectView, 
@@ -68,6 +66,10 @@ export class AddProjectComponent implements OnInit {
         ...value.PriceTechInfo,
         ...value.ContactInfo 
       };
+      // Обновляем Goal и Funded в превью
+      this.projectView.Goal = value.PriceTechInfo.Goal;
+      this.projectView.Funded = value.PriceTechInfo.Funded;
+      
       if (this.uploadedImages.length > 0) {
         this.projectView.Image = this.uploadedImages[0];
       }
@@ -88,7 +90,8 @@ export class AddProjectComponent implements OnInit {
             Location: data.Location
           },
           PriceTechInfo: {
-            Price: data.Price,
+            Goal: data.Goal,
+            Funded: data.Funded || 0, // <--- Загружаем Funded
             Technologies: data.Technologies
           },
           OtherInfo: {
@@ -101,15 +104,10 @@ export class AddProjectComponent implements OnInit {
           }
         });
 
-        if (data.Photos) {
-          this.uploadedImages = data.Photos;
-        } else if (data.Image) {
-           this.uploadedImages = [data.Image];
-        }
+        if (data.Photos) this.uploadedImages = data.Photos;
+        else if (data.Image) this.uploadedImages = [data.Image];
 
-        if (data.Videos) {
-          this.uploadedVideoUrls = data.Videos;
-        }
+        if (data.Videos) this.uploadedVideoUrls = data.Videos;
       }
     });
   }
@@ -123,7 +121,8 @@ export class AddProjectComponent implements OnInit {
         Location: [null, Validators.required]
       }),
       PriceTechInfo: this.fb.group({
-        Price: [null, [Validators.required, Validators.min(0)]],
+        Goal: [null, [Validators.required, Validators.min(1)]],
+        Funded: [0, [Validators.required, Validators.min(0)]], // <--- Добавили поле Funded (по умолчанию 0)
         Technologies: [null, Validators.required],
       }),
       OtherInfo: this.fb.group({
@@ -137,31 +136,21 @@ export class AddProjectComponent implements OnInit {
     });
   }
 
-  // === МЕТОД SUBMIT ===
   onSubmit() {
     this.nextClicked = true;
-
     if (this.allTabsValid()) {
       this.mapProject(); 
       
       if (this.editMode) {
-        // === РЕДАКТИРОВАНИЕ ===
-        this.projectingService.updateProject(this.project)
-          .then(() => {
+        this.projectingService.updateProject(this.project).then(() => {
             this.toastr.success('Project updated successfully!');
             this.navigateAfterSave();
-          })
-          .catch(err => {
-            console.error(err);
-            this.toastr.error('Error updating project!');
           });
       } else {
-        // === СОЗДАНИЕ ===
         this.projectingService.addProject(this.project);
         this.toastr.success('Project created successfully!');
         this.navigateAfterSave();
       }
-
     } else {
         this.toastr.error('Please fill all required fields');
     }
@@ -176,33 +165,31 @@ export class AddProjectComponent implements OnInit {
   }
 
   mapProject(): void {
-    // Если редактируем - оставляем старый ID, иначе генерируем новый
     this.project.Id = this.editMode ? this.projectId! : this.projectingService.newProjID();
-    
     this.project.Sell = +this.Sell.value;
     this.project.Name = this.Name.value;
     this.project.Type = this.Type.value;
     this.project.Location = this.Location.value;
-    this.project.Price = this.Price.value;
+    
+    this.project.Goal = this.Goal.value;
+    this.project.Funded = this.Funded.value || 0; // <--- Сохраняем значение из формы
+
     this.project.Technologies = this.Technologies.value;
     this.project.Description = this.Description.value;
-    
     this.project.Image = this.uploadedImages.length > 0 ? this.uploadedImages[0] : '';
     this.project.Photos = this.uploadedImages;
     this.project.Videos = this.uploadedVideoUrls;
-
     this.project.ContactEmail = this.ContactEmail.value;
     this.project.ContactPhone = this.ContactPhone.value;
     this.project.ContactOther = this.ContactOther.value;
     
-    // Безопасное получение токена
     if (!this.editMode && typeof localStorage !== 'undefined') {
         this.project.By = localStorage.getItem('token') || 'Unknown';
     }
   }
 
-  // === Методы для файлов, валидации и геттеры ===
-  onFileSelected(event: any) {
+  // --- Helpers ---
+  onFileSelected(event: any) { 
     const file: File = event.target.files[0];
     if (file) {
       this.isImageUploading = true;
@@ -217,9 +204,8 @@ export class AddProjectComponent implements OnInit {
       });
     }
   }
-
-  onVideoSelected(event: any) {
-    const file: File = event.target.files[0];
+  onVideoSelected(event: any) { 
+     const file: File = event.target.files[0];
     if (file) {
       this.isVideoUploading = true;
       this.projectingService.uploadFile(file).subscribe({
@@ -247,41 +233,24 @@ export class AddProjectComponent implements OnInit {
   get Name() { return this.BasicInfo.controls['Name'] as FormControl; }
   get Type() { return this.BasicInfo.controls['Type'] as FormControl; }
   get Location() { return this.BasicInfo.controls['Location'] as FormControl; }
-  get Price() { return this.PriceTechInfo.controls['Price'] as FormControl; }
+  
+  get Goal() { return this.PriceTechInfo.controls['Goal'] as FormControl; }
+  get Funded() { return this.PriceTechInfo.controls['Funded'] as FormControl; } // <--- Геттер для Funded
   get Technologies() { return this.PriceTechInfo.controls['Technologies'] as FormControl; }
+  
   get Description() { return this.OtherInfo.controls['Description'] as FormControl; }
   get ContactEmail() { return this.ContactInfo.controls['ContactEmail'] as FormControl; }
   get ContactPhone() { return this.ContactInfo.controls['ContactPhone'] as FormControl; }
   get ContactOther() { return this.ContactInfo.controls['ContactOther'] as FormControl; }
 
-  onBack() {
-    this.router.navigate(['/']);
-  }
+  onBack() { this.router.navigate(['/']); }
 
   allTabsValid(): boolean {
-    if (this.BasicInfo.invalid) {
-      this.formTabs.tabs[0].active = true;
-      return false;
-    }
-    if (this.PriceTechInfo.invalid) {
-      this.formTabs.tabs[1].active = true;
-      return false;
-    }
-    if (this.OtherInfo.invalid) {
-      this.formTabs.tabs[2].active = true;
-      return false;
-    }
-    if (this.ContactInfo.invalid) {
-        this.formTabs.tabs[4].active = true;
-        return false;
-    }
+    if (this.BasicInfo.invalid) { this.formTabs.tabs[0].active = true; return false; }
+    if (this.PriceTechInfo.invalid) { this.formTabs.tabs[1].active = true; return false; }
+    if (this.OtherInfo.invalid) { this.formTabs.tabs[2].active = true; return false; }
+    if (this.ContactInfo.invalid) { this.formTabs.tabs[4].active = true; return false; }
     return true;
   }
-   
-  selectTab(NextTabId: number, IsCurrentTabValid: boolean) {
-    this.nextClicked = true;
-    if (IsCurrentTabValid) {
-      this.formTabs.tabs[NextTabId].active = true;
-    }
-  }
+  selectTab(NextTabId: number, IsCurrentTabValid: boolean) { this.nextClicked = true; if (IsCurrentTabValid) { this.formTabs.tabs[NextTabId].active = true; } }
 }

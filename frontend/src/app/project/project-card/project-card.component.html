@@ -4,13 +4,11 @@
         <img *ngIf="!project.Image" class="card-img-top" src="assets/images/project-default1.png">
 
         <ul *ngIf="!hideIcons" class="list-inline text-center member-icons animate">
-            
             <li class="list-inline-item" *ngIf="isOwnProject">
                 <button class="btn btn-primary" routerLink="/edit-project/{{project.Id}}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
             </li>
-            
             <li class="list-inline-item" *ngIf="isOwnProject">
                 <button class="btn btn-danger" (click)="onDeleteProject()">
                     <i class="fa-solid fa-trash"></i>
@@ -23,17 +21,35 @@
             </li>
         </ul>
     </div>
+
     <div class="card-body p-2">
-         <p>{{project.Name}}</p>
-        <span *ngIf="project.Name"> </span>Country:
-        {{project.Location}}
-    
-        <h6  class="mt-2">{{project.Type}}
-        <span *ngIf="project.Type"></span></h6>
+         <h5 class="card-title">{{project.Name}}</h5>
+         <p class="card-text text-muted"><i class="fa-solid fa-location-dot"></i> {{project.Location}}</p>
+         <h6 class="text-primary">{{project.Type}}</h6>
     
         <hr class="mt-0 mb-2">
     
-        <h6 class="mb-0">Price: <span class="font-highlight">{{project.Price}} USD</span> <br>
-            Technologies:  <span class="font-highlight">{{project.Technologies}} </span> </h6>
+        <div class="finance-info">
+            <div class="d-flex justify-content-between">
+                <span>Goal:</span>
+                <span class="font-weight-bold">{{project.Goal}} $</span>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-1">
+                <span>Funded:</span>
+                <span class="text-success font-weight-bold">
+                    {{project.Funded || 0}} $ 
+                    <small>({{ ((project.Funded || 0) / project.Goal * 100) | number:'1.0-0' }}%)</small>
+                </span>
+            </div>
+
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     [style.width.%]="((project.Funded || 0) / project.Goal * 100)" 
+                     aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+
+        <p class="mt-2 mb-0"><small>Tech: {{project.Technologies}}</small></p>
     </div>
 </div>

@@ -5,7 +5,8 @@ export class Project implements IProjectBase{
     Sell!: number;
     Name!: string;
     Type!: string;
-    Price!: number;
+    Goal!: number;
+    Funded?: number;
     Location!: string;
     Technologies!: string;
     Image?: string;
@@ -16,4 +17,8 @@ export class Project implements IProjectBase{
     ContactPhone?: string;
     ContactOther?: string;
     By?: string;
+
+    constructor() {
+        this.Funded = 0;
+    }
 }
