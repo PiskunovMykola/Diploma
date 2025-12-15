@@ -25,8 +25,11 @@ export class EditPasswordComponent implements OnInit {
   }
 
   createForm() {
+    // Тот же паттерн: 8 символов + 1 цифра + 1 спецсимвол
+    const passwordPattern = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+
     this.passwordForm = this.fb.group({
-      password: [null, [Validators.required, Validators.minLength(6)]],
+      password: [null, [Validators.required, Validators.minLength(8), Validators.pattern(passwordPattern)]],
       confirmPassword: [null, Validators.required]
     }, { 
       validators: this.passwordMatchingValidator 

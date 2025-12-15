@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { AuthService } from '../../../services/auth.service'; // Используем AuthService
+import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../model/user';
 import { ToastrService } from 'ngx-toastr';
-import { Router } from '@angular/router'; // Добавили роутер
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -17,9 +17,9 @@ export class RegisterComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder, 
-    private authService: AuthService, // Изменили сервис
+    private authService: AuthService,
     private toastr: ToastrService,
-    private router: Router // Внедрили роутер для переадресации
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -27,10 +27,20 @@ export class RegisterComponent implements OnInit {
   }
 
   createRegistrationForm(){
+    // Регулярное выражение: 
+    // (?=.*[0-9]) - хотя бы одна цифра
+    // (?=.*[!@#$%^&*]) - хотя бы один спецсимвол
+    // .{8,} - длина минимум 8
+    // Примечание: если нужно проверять конкретные спецсимволы, можно изменить часть [!@#$%^&*]
+    // Здесь мы используем более общий паттерн для спецсимволов: [^a-zA-Z0-9] (любой символ, не являющийся буквой или цифрой)
+    // Либо конкретный список: [!@#$%^&*(),.?":{}|<>]
+    const passwordPattern = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+
     this.registrationForm = this.fb.group({
       userName: [null, Validators.required],
       email: [null, [Validators.required, Validators.email]],
-      password: [null, [Validators.required, Validators.minLength(6)]], // Firebase требует минимум 6 символов (у вас было 8, можно оставить 8)
+      // Обновленная валидация пароля
+      password: [null, [Validators.required, Validators.minLength(8), Validators.pattern(passwordPattern)]],
       confirmPassword: [null, Validators.required],
       mobile: [null, [Validators.required, Validators.maxLength(10)]],
     }, {validator: this.passwordMatchingValidator});
@@ -47,26 +57,20 @@ export class RegisterComponent implements OnInit {
 
     if(this.registrationForm.valid){
       
-      // === ВЫЗОВ FIREBASE ===
       this.authService.register(this.userData())
         .then(() => {
-           // УСПЕХ
            this.toastr.success('Congratulations, you have successfully registered!');
            this.userSubmitted = false;
            this.registrationForm.reset();
-           
-           // После регистрации сразу логиним и переходим на главную
-           // Или можно перекинуть на страницу входа: this.router.navigate(['/user/login']);
            this.router.navigate(['/']); 
         })
         .catch((error) => {
-           // ОШИБКА (например, email уже занят)
            console.error(error);
            this.toastr.error('Registration failed: ' + error.message);
         });
 
     } else {
-      this.toastr.error('Kindly fill in the required fields!');
+      this.toastr.error('Kindly fill in the required fields correctly!');
     }
   }
 

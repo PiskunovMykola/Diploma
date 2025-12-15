@@ -34,8 +34,11 @@
               <span *ngIf="password.hasError('required')">
                 Please enter password
               </span>
-              <span *ngIf="password.hasError('minlength')" class="error-message">
-                Password must be at least 8 characters long
+              <span *ngIf="password.hasError('minlength')">
+                Password must be at least 8 characters long<br>
+              </span>
+              <span *ngIf="password.hasError('pattern')">
+                Must contain at least 1 number and 1 special char (!&#64;#$%^&*)
               </span>
             </span>
           </div>
