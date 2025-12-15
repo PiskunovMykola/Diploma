@@ -8,6 +8,7 @@
         <form (ngSubmit)='onSubmit()' [formGroup]="addProjectForm">
           <div class="tab-panel">
             <tabset class="member-tabset" #formTabs>              
+              
               <tab heading="Basic info" formGroupName="BasicInfo">
                 <div class="form-group">
                   <label for="name">Name</label>
@@ -62,10 +63,23 @@
               <tab heading="Description" formGroupName="OtherInfo">
                 <div class="form-group col-12">
                   <label>Description</label>
-                  <textarea id="description" formControlName="Description" class="form-control"></textarea>
+                  <textarea id="description" formControlName="Description" class="form-control" rows="5"></textarea>
                 </div><br>
                 <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, OtherInfo.valid)">Next</button>
                 <button type="button" class="btn btn-primary btn-block" (click)="selectTab(1, OtherInfo.valid)">Back</button>
+              </tab>
+
+              <tab heading="Rewards" formGroupName="RewardsInfo">
+                <div class="form-group col-12">
+                  <label>Donation Rewards</label>
+                  <textarea class="form-control" formControlName="RewardsDescription" rows="5" placeholder="Example: 
+10$ - Thank you letter
+50$ - T-Shirt with logo
+100$ - Early access to the product"></textarea>
+                  <small class="text-muted">Describe what backers get for their support.</small>
+                </div><br>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4, true)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
               </tab>
 
               <tab heading="Photos and Video(optional)">
@@ -84,31 +98,16 @@
                       <div class="col-sm-3 mb-2" *ngFor="let photoUrl of uploadedImages; let i = index">
                           <div class="card text-center h-100">
                             <span *ngIf="i === 0" class="badge badge-success position-absolute" style="top:5px; left:5px; z-index: 10;">Main</span>
-                            
                             <div style="height: 100px; overflow: hidden;">
                                 <img [src]="photoUrl" class="card-img-top" style="height: 100%; object-fit: cover;">
                             </div>
-
                             <div class="card-footer p-1">
                               <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-outline-secondary" 
-                                        (click)="moveImage(i, -1)" 
-                                        [disabled]="i === 0">
-                                  ←
-                                </button>
-                                
-                                <button type="button" class="btn btn-outline-danger" (click)="removeImage(i)">
-                                  🗑️
-                                </button>
-
-                                <button type="button" class="btn btn-outline-secondary" 
-                                        (click)="moveImage(i, 1)" 
-                                        [disabled]="i === uploadedImages.length - 1">
-                                  →
-                                </button>
+                                <button type="button" class="btn btn-outline-secondary" (click)="moveImage(i, -1)" [disabled]="i === 0">←</button>
+                                <button type="button" class="btn btn-outline-danger" (click)="removeImage(i)">🗑️</button>
+                                <button type="button" class="btn btn-outline-secondary" (click)="moveImage(i, 1)" [disabled]="i === uploadedImages.length - 1">→</button>
                               </div>
                             </div>
-
                           </div>
                       </div>
                     </div>
@@ -116,11 +115,7 @@
                     <hr>
                     <label><b>Videos</b></label><br>
                     <input type="file" (change)="onVideoSelected($event)" #videoInput style="display: none;" accept="video/*">
-                    
-                    <button class="btn btn-dark mb-3" type="button" (click)="videoInput.click()">
-                      Upload Video
-                    </button>
-
+                    <button class="btn btn-dark mb-3" type="button" (click)="videoInput.click()">Upload Video</button>
                     <p *ngIf="isVideoUploading" class="text-info">Uploading video...</p>
                     
                     <div class="row">
@@ -139,12 +134,11 @@
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
                 <br>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(4, true)">Next</button>
-                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(2, true)">Back</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(5, true)">Next</button>
+                <button type="button" class="btn btn-primary btn-block" (click)="selectTab(3, true)">Back</button>
               </tab>
 
               <tab heading="Contact" formGroupName="ContactInfo">
@@ -160,26 +154,24 @@
                     Please enter a valid email address
                   </span>
                 </div>
-
                 <div class="form-group col-12">
                   <label for="ContactPhone">Contact Phone (Optional)</label>
                   <input type="tel" class="form-control" formControlName="ContactPhone" placeholder="+1 234 567 890">
                 </div>
-
                 <div class="form-group col-12">
                     <label for="ContactOther">Other / Social Media (Optional)</label>
-                    <input type="text" class="form-control" formControlName="ContactOther" placeholder="Telegram, LinkedIn, Website, etc.">
+                    <input type="text" class="form-control" formControlName="ContactOther" placeholder="Telegram, LinkedIn, etc.">
                 </div>
-
                 <br>
                <div class="form-group col-12">
                   <div class="d-flex gap-2 mt-3">
-                      <button type="button" class="btn btn-primary" (click)="selectTab(3, true)">Back</button>
+                      <button type="button" class="btn btn-primary" (click)="selectTab(4, true)">Back</button>
                       <button type="reset" class="btn btn-secondary">Cancel</button>
                       <button type="submit" class="btn btn-success">Save Project</button>
                   </div>
               </div>
               </tab>
+
             </tabset>
           </div>
         </form>

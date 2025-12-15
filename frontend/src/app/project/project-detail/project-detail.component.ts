@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectingService } from '../../services/projecting.service';
 import { Project } from '../../model/project';
 import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from '@kolkov/ngx-gallery';
-import { AuthService } from '../../services/auth.service'; // <--- Импорт AuthService
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -16,20 +16,19 @@ export class ProjectDetailComponent implements OnInit {
   galleryOptions!: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[] = [];
   
-  // Переменная для статуса авторизации
   isUserLoggedIn: boolean = false;
 
   constructor(
     private route: ActivatedRoute, 
     private router: Router,
     private projectingService: ProjectingService,
-    private authService: AuthService // <--- Внедрение сервиса
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
     this.projectId = +this.route.snapshot.params['id'];
     
-    // 1. Проверяем, залогинен ли пользователь
+    // Check login status
     this.isUserLoggedIn = this.authService.loggedin();
 
     this.route.data.subscribe((data) => {

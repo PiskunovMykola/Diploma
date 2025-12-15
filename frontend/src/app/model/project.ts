@@ -13,6 +13,7 @@ export class Project implements IProjectBase{
     Photos?: string[];
     Videos?: string[];
     Description!: string;
+    Rewards?: string;
     ContactEmail?: string;
     ContactPhone?: string;
     ContactOther?: string;

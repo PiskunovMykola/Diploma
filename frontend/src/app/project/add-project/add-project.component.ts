@@ -30,7 +30,8 @@ export class AddProjectComponent implements OnInit {
 
   projectView: IProjectBase = {
     Id: 0, Sell: 0, Name: '', Type: '', Goal: 0, Funded: 0, Location: '', Technologies: '', 
-    Image: '', Description: '', Photos: [], Videos: [], 
+    Image: '', Description: '', Rewards: '', // <---
+    Photos: [], Videos: [], 
     ContactEmail: '', ContactPhone: '', ContactOther: ''
   };
 
@@ -58,15 +59,14 @@ export class AddProjectComponent implements OnInit {
       this.loadProjectData(this.projectId!);
     }
 
-    // Подписка на изменения формы для превью
     this.addProjectForm.valueChanges.subscribe(value => {
       this.projectView = { 
         ...this.projectView, 
         ...value.BasicInfo, 
         ...value.PriceTechInfo,
+        ...value.RewardsInfo, // <--- Добавили обновление превью (если понадобится)
         ...value.ContactInfo 
       };
-      // Обновляем Goal и Funded в превью
       this.projectView.Goal = value.PriceTechInfo.Goal;
       this.projectView.Funded = value.PriceTechInfo.Funded;
       
@@ -91,11 +91,15 @@ export class AddProjectComponent implements OnInit {
           },
           PriceTechInfo: {
             Goal: data.Goal,
-            Funded: data.Funded || 0, // <--- Загружаем Funded
+            Funded: data.Funded || 0,
             Technologies: data.Technologies
           },
           OtherInfo: {
             Description: data.Description
+          },
+          // Загрузка Rewards
+          RewardsInfo: {
+            RewardsDescription: data.Rewards || ''
           },
           ContactInfo: {
             ContactEmail: data.ContactEmail,
@@ -122,11 +126,15 @@ export class AddProjectComponent implements OnInit {
       }),
       PriceTechInfo: this.fb.group({
         Goal: [null, [Validators.required, Validators.min(1)]],
-        Funded: [0, [Validators.required, Validators.min(0)]], // <--- Добавили поле Funded (по умолчанию 0)
+        Funded: [0, [Validators.required, Validators.min(0)]],
         Technologies: [null, Validators.required],
       }),
       OtherInfo: this.fb.group({
         Description: [null]
+      }),
+      // НОВАЯ ГРУППА ФОРМЫ
+      RewardsInfo: this.fb.group({
+        RewardsDescription: [null]
       }),
       ContactInfo: this.fb.group({
         ContactEmail: [null, [Validators.required, Validators.email]],
@@ -172,10 +180,14 @@ export class AddProjectComponent implements OnInit {
     this.project.Location = this.Location.value;
     
     this.project.Goal = this.Goal.value;
-    this.project.Funded = this.Funded.value || 0; // <--- Сохраняем значение из формы
+    this.project.Funded = this.Funded.value || 0;
 
     this.project.Technologies = this.Technologies.value;
     this.project.Description = this.Description.value;
+    
+    // Сохраняем Rewards
+    this.project.Rewards = this.RewardsDescription.value;
+
     this.project.Image = this.uploadedImages.length > 0 ? this.uploadedImages[0] : '';
     this.project.Photos = this.uploadedImages;
     this.project.Videos = this.uploadedVideoUrls;
@@ -227,6 +239,7 @@ export class AddProjectComponent implements OnInit {
   get BasicInfo() { return this.addProjectForm.controls['BasicInfo'] as FormGroup; }
   get PriceTechInfo() { return this.addProjectForm.controls['PriceTechInfo'] as FormGroup; }
   get OtherInfo() { return this.addProjectForm.controls['OtherInfo'] as FormGroup; }
+  get RewardsInfo() { return this.addProjectForm.controls['RewardsInfo'] as FormGroup; } // <--- Геттер для группы
   get ContactInfo() { return this.addProjectForm.controls['ContactInfo'] as FormGroup; }
   
   get Sell() { return this.BasicInfo.controls['Sell']; }
@@ -235,10 +248,12 @@ export class AddProjectComponent implements OnInit {
   get Location() { return this.BasicInfo.controls['Location'] as FormControl; }
   
   get Goal() { return this.PriceTechInfo.controls['Goal'] as FormControl; }
-  get Funded() { return this.PriceTechInfo.controls['Funded'] as FormControl; } // <--- Геттер для Funded
+  get Funded() { return this.PriceTechInfo.controls['Funded'] as FormControl; }
   get Technologies() { return this.PriceTechInfo.controls['Technologies'] as FormControl; }
   
   get Description() { return this.OtherInfo.controls['Description'] as FormControl; }
+  get RewardsDescription() { return this.RewardsInfo.controls['RewardsDescription'] as FormControl; } // <--- Геттер для поля
+  
   get ContactEmail() { return this.ContactInfo.controls['ContactEmail'] as FormControl; }
   get ContactPhone() { return this.ContactInfo.controls['ContactPhone'] as FormControl; }
   get ContactOther() { return this.ContactInfo.controls['ContactOther'] as FormControl; }
@@ -249,8 +264,10 @@ export class AddProjectComponent implements OnInit {
     if (this.BasicInfo.invalid) { this.formTabs.tabs[0].active = true; return false; }
     if (this.PriceTechInfo.invalid) { this.formTabs.tabs[1].active = true; return false; }
     if (this.OtherInfo.invalid) { this.formTabs.tabs[2].active = true; return false; }
-    if (this.ContactInfo.invalid) { this.formTabs.tabs[4].active = true; return false; }
+    if (this.RewardsInfo.invalid) { this.formTabs.tabs[3].active = true; return false; }
+    if (this.ContactInfo.invalid) { this.formTabs.tabs[5].active = true; return false; }
     return true;
   }
+  
   selectTab(NextTabId: number, IsCurrentTabValid: boolean) { this.nextClicked = true; if (IsCurrentTabValid) { this.formTabs.tabs[NextTabId].active = true; } }
 }
