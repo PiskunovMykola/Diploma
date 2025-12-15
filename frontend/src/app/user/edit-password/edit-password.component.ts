@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { UserService } from '../../services/user.service';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { User } from '../../model/user';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-edit-password',
@@ -11,46 +11,73 @@ import { User } from '../../model/user';
 })
 export class EditPasswordComponent implements OnInit {
   passwordForm!: FormGroup;
-  user: User | null = null;
+  isSubmitting: boolean = false;
 
-  constructor(private fb: FormBuilder, private userService: UserService, private toastr: ToastrService) { }
+  constructor(
+    private fb: FormBuilder,
+    private afAuth: AngularFireAuth,
+    private toastr: ToastrService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
-    const users = this.userService.getUsers();
-    this.user = users.length ? users[0] : null; // Получаем первого пользователя из списка
+    this.createForm();
+  }
 
-    if (this.user) {
-      this.passwordForm = this.fb.group({
-        currentPassword: ['', Validators.required],
-        newPassword: ['', [Validators.required, Validators.minLength(8)]],
-        confirmNewPassword: ['', Validators.required]
-      }, { validator: this.passwordMatchingValidator });
+  createForm() {
+    this.passwordForm = this.fb.group({
+      password: [null, [Validators.required, Validators.minLength(6)]],
+      confirmPassword: [null, Validators.required]
+    }, { 
+      validators: this.passwordMatchingValidator 
+    });
+  }
+
+  passwordMatchingValidator(fc: AbstractControl): ValidationErrors | null {
+    const pass = fc.get('password')?.value;
+    const confirmPass = fc.get('confirmPassword')?.value;
+
+    if (!pass || !confirmPass) {
+        return null;
     }
+
+    return pass === confirmPass ? null : { notmatched: true };
   }
 
-  // Проверка, что новый пароль и подтвержденный пароль совпадают
-  passwordMatchingValidator(fc: FormGroup) {
-    return fc.get('newPassword')?.value === fc.get('confirmNewPassword')?.value ? null : { notmatched: true };
-  }
+  onSubmit() {
+    if (this.passwordForm.valid) {
+      this.isSubmitting = true;
+      const newPassword = this.passwordForm.get('password')?.value;
 
-  onSubmit(): void {
-    if (this.passwordForm.valid && this.user) {
-      const { currentPassword, newPassword } = this.passwordForm.value;
-
-      if (currentPassword === this.user.password) {
-        const updatedUser: User = {
-          ...this.user,
-          password: newPassword, // Обновляем только пароль
-        };
-
-        // Обновляем данные пользователя
-        this.userService.updateUser(updatedUser);
-        this.toastr.success('Password changed successfully!');
-      } else {
-        this.toastr.error('Current password is incorrect!');
-      }
+      this.afAuth.currentUser.then(user => {
+        if (user) {
+          user.updatePassword(newPassword)
+            .then(() => {
+              this.toastr.success('Password changed successfully!');
+              this.isSubmitting = false;
+              this.router.navigate(['/']);
+            })
+            .catch((error) => {
+              this.isSubmitting = false;
+              console.error(error);
+              
+              if (error.code === 'auth/requires-recent-login') {
+                  this.toastr.error('Security timeout. Please logout and login again.');
+              } else {
+                  this.toastr.error(error.message);
+              }
+            });
+        } else {
+          this.isSubmitting = false;
+          this.toastr.error('User not logged in. Refreshing page...');
+          this.router.navigate(['/user/login']);
+        }
+      });
     } else {
-      this.toastr.error('Please fill in all fields correctly.');
+      this.toastr.error('Please fix errors in the form');
     }
   }
+
+  get password() { return this.passwordForm.get('password'); }
+  get confirmPassword() { return this.passwordForm.get('confirmPassword'); }
 }

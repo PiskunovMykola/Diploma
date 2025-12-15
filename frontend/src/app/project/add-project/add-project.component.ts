@@ -5,6 +5,7 @@ import { TabsetComponent } from 'ngx-bootstrap/tabs';
 import { IProjectBase } from '../../model/iprojectbase';
 import { ProjectingService } from '../../services/projecting.service';
 import { Project } from '../../model/project';
+import { ToastrService } from 'ngx-toastr'; // <--- 1. Добавили импорт
 
 @Component({
   selector: 'app-add-project',
@@ -37,10 +38,19 @@ export class AddProjectComponent implements OnInit {
     private fb: FormBuilder, 
     private router: Router,
     private route: ActivatedRoute, 
-    private projectingService: ProjectingService
+    private projectingService: ProjectingService,
+    private toastr: ToastrService // <--- 2. Внедрили сервис уведомлений
   ) { }
 
   ngOnInit() {
+    // === 3. ЗАЩИТА СТРАНИЦЫ ===
+    // Если токена нет - показываем ошибку и выкидываем на логин
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem('token')) {
+        this.toastr.error('Please login to add a new project!');
+        this.router.navigate(['/user/login']);
+        return; // Останавливаем выполнение, чтобы форма не грузилась
+    }
+
     this.CreateAddProjectForm();
     
     // Проверяем, есть ли ID в адресной строке
@@ -48,7 +58,7 @@ export class AddProjectComponent implements OnInit {
     if (idParam) {
       this.projectId = +idParam;
       this.editMode = true;
-      this.loadProjectData(this.projectId);
+      this.loadProjectData(this.projectId!);
     }
 
     this.addProjectForm.valueChanges.subscribe(value => {
@@ -127,33 +137,33 @@ export class AddProjectComponent implements OnInit {
     });
   }
 
-  // === МЕТОД SUBMIT (ИСПРАВЛЕННЫЙ И УПРОЩЕННЫЙ) ===
+  // === МЕТОД SUBMIT ===
   onSubmit() {
     this.nextClicked = true;
 
     if (this.allTabsValid()) {
-      this.mapProject(); // Собираем данные из формы в объект this.project
+      this.mapProject(); 
       
       if (this.editMode) {
         // === РЕДАКТИРОВАНИЕ ===
         this.projectingService.updateProject(this.project)
           .then(() => {
-            alert('Project updated successfully!');
+            this.toastr.success('Project updated successfully!');
             this.navigateAfterSave();
           })
           .catch(err => {
             console.error(err);
-            alert('Error updating project!');
+            this.toastr.error('Error updating project!');
           });
       } else {
         // === СОЗДАНИЕ ===
         this.projectingService.addProject(this.project);
-        alert('Project created successfully!');
+        this.toastr.success('Project created successfully!');
         this.navigateAfterSave();
       }
 
     } else {
-        alert('Please fill all required fields');
+        this.toastr.error('Please fill all required fields');
     }
   }
 
@@ -191,7 +201,7 @@ export class AddProjectComponent implements OnInit {
     }
   }
 
-  // === Методы для файлов, валидации и геттеры (без изменений) ===
+  // === Методы для файлов, валидации и геттеры ===
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
